@@ -915,7 +915,7 @@ A few final modifications:
         load-prefer-newer t)
 #+END_SRC
 
-** Kill running process
+** Kill running process prompt
 #+BEGIN_SRC emacs-lisp
 ;;no prompt to kill a buffer with live process
 (setq kill-buffer-query-functions
@@ -1467,7 +1467,7 @@ This will make the contents of code blocks use the same font locking (syntax hig
         org-src-tab-acts-natively    t)
 #+END_SRC
 
-** References (org-ref)
+** COMMENT References (org-ref)
 I use org-ref to manage my references.
 #+BEGIN_SRC emacs-lisp
   (use-package org-ref
@@ -1806,7 +1806,7 @@ I can use [[https://github.com/myuhe/org-gcal.el][org-gcal]] to (bidirectionally
     (fset 'org-gcal--notify 'new/org-gcal--notify))
 #+END_SRC
 
-** Pomodoro
+** COMMENT Pomodoro
 I can use =org-pomodoro= for a [[http://pomodorotechnique.com/][pomodoro]]. By default, it works in 25-minute work blocks and 5 minute breaks after. The fourth break is longer - 20 minutes by default.
 
 #+BEGIN_SRC emacs-lisp
@@ -1988,69 +1988,47 @@ ESS (Emacs Speaks Statistics) is a [[http://ess.r-project.org/][great project]] 
 
 #+BEGIN_SRC emacs-lisp
   (use-package ess-site
-               :ensure ess
-               :pin melpa-stable
-               :bind
-               (:map ess-mode-map
-                     ("C-a" . crux-move-beginning-of-line)
-                     ("M-=" . ess-insert-S-assign)
-                     ("_"   . self-insert-command)
-                     ("M-p" . my/add-pipe)
-                     ("C-|" . my/ess-eval-pipe-through-line)
-                     :map inferior-ess-mode-map
-                     ("M-=" . ess-insert-S-assign)
-                     ("_"   . self-insert-command))
-               :config
-               (setq ess-nuke-trailing-whitespace-p t)
-               (add-hook 'ess-mode-hook
-                         (lambda ()
-                           (ess-set-style 'RStudio)))
-               (setq ess-eval-visibly 'nowait) ; don't hog Emacs
-               (setq ess-ask-for-ess-directory nil) ; don't ask for dir when starting a process
-               (setq ess-eldoc-show-on-symbol t) ; show eldoc on symbol instead of only inside of parens
-               (setq ess-use-ido nil) ; rely on helm instead of ido
-               (progn
-                 ;; Save R history in one place rather than making .Rhistory files
-                 ;; everywhere. Make that folder if needed.
-                 (setq ess-history-directory (concat user-emacs-directory "var/Rhist/"))
-                 (mkdir ess-history-directory t))
-               (setq ess-pdf-viewer-pref "emacsclient")
-               (defun my/add-pipe ()
-                 "Adds a pipe operator %>% with one space to the left and then
-  starts a newline with proper indentation"
-                 (interactive)
-                 (just-one-space 1)
-                 (insert "%>%")
-                 (ess-newline-and-indent))
-               ;; I sometimes want to evaluate just part of a piped sequence. The
-               ;; following lets me do so without needing to insert blank lines or
-               ;; something:
-               (defun my/ess-beginning-of-pipe-or-end-of-line ()
-                 "Find point position of end of line or beginning of pipe %>%"
-                 (if (search-forward "%>%" (line-end-position) t)
-                     (let ((pos (progn
-                                  (beginning-of-line)
-                                  (search-forward "%>%" (line-end-position))
-                                  (backward-char 3)
-                                  (point))))
-                       (goto-char pos))
-                   (end-of-line)))
-
-               (defun my/ess-eval-pipe-through-line (vis)
-                 "Like `ess-eval-paragraph' but only evaluates up to the pipe on this line.
-
-  If no pipe, evaluate paragraph through the end of current line.
-
-  Prefix arg VIS toggles visibility of ess-code as for `ess-eval-region'."
-                 (interactive "P")
-                 (save-excursion
-                   (let ((end (progn
-                                (my/ess-beginning-of-pipe-or-end-of-line)
-                                (point)))
-                         (beg (progn (backward-paragraph)
-                                     (ess-skip-blanks-forward 'multiline)
-                                     (point))))
-                     (ess-eval-region beg end vis)))))
+    :ensure ess
+    :pin melpa-stable
+    :bind
+    (:map ess-mode-map
+          ("C-a" . crux-move-beginning-of-line)
+          ("M-=" . ess-insert-S-assign)
+          ("_"   . self-insert-command)
+          ("M-p" . my/add-pipe)
+          ("C-|" . my/ess-eval-pipe-through-line)
+          :map inferior-ess-mode-map
+          ("M-=" . ess-insert-S-assign)
+          ("_"   . self-insert-command))
+    :config
+    (setq ess-nuke-trailing-whitespace-p t)
+    (add-hook 'ess-mode-hook
+              (lambda ()
+                (ess-set-style 'RStudio)))
+    (setq ess-eval-visibly 'nowait) ; don't hog Emacs
+    (setq ess-ask-for-ess-directory nil) ; don't ask for dir when starting a process
+    (setq ess-eldoc-show-on-symbol t) ; show eldoc on symbol instead of only inside of parens
+    (setq ess-use-ido nil) ; rely on helm instead of ido
+    (progn
+      ;; Save R history in one place rather than making .Rhistory files
+      ;; everywhere. Make that folder if needed.
+      (setq ess-history-directory (concat user-emacs-directory "var/Rhist/"))
+      (mkdir ess-history-directory t))
+    (setq ess-pdf-viewer-pref "emacsclient")
+    (setq ess-R-font-lock-keywords
+          (quote
+           ((ess-R-fl-keyword:modifiers . t)
+            (ess-R-fl-keyword:fun-defs . t)
+            (ess-R-fl-keyword:keywords . t)
+            (ess-R-fl-keyword:assign-ops . t)
+            (ess-R-fl-keyword:constants . t)
+            (ess-fl-keyword:fun-calls . t)
+            (ess-fl-keyword:numbers . t)
+            (ess-fl-keyword:operators . t)
+            (ess-fl-keyword:delimiters . t)
+            (ess-fl-keyword:= . t)
+            (ess-R-fl-keyword:F&T)
+            (ess-R-fl-keyword:%op%)))))
 #+END_SRC
 
 * CSV files
@@ -2303,6 +2281,12 @@ I autocommit a few files, like notes and todo:
   `((".*" "~/.emacs.d/autosave/" t)))
 
 #+END_SRC
+* Internet
+#+BEGIN_SRC  emacs-lisp
+;; set specific browser to open links
+(setq browse-url-browser-function 'browse-url-firefox)
+#+END_SRC
+
 * Diff
 ** ediff
 Ediff is great, but I have to tell it to use one frame (since I start Emacs before X/wayland, it defaults to using two frames).
@@ -2469,7 +2453,7 @@ Projectile makes using projects easier in emacs. It also plays well with helm, s
   (cond
    ((string-equal system-name "kea")
     (progn
-      (message "Hi kea!")))
+      (setq x-super-keysym 'meta)))
    ((string-equal system-type "starling")
     (progn
       ((setq x-super-keysym 'meta)))))
