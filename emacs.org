@@ -1312,18 +1312,13 @@ I can use this when I can't remember the exact name of a snippet.
     ("M-`" . helm-yas-complete))
 #+END_SRC
 * Org
-Org mode is a great thing. I use it for writing academic papers, managing my schedule, managing my references and notes, writing presentations, writing lecture slides, and pretty much anything else. This file is written in org-mode.
-
-Define =C-c l= to =org-store-link=:
-
+ Hide leading stars in org.
 #+BEGIN_SRC emacs-lisp
-  ;; (bind-key "C-c l" #'org-store-link)
- ;; Hide leading stars
   (setq org-startup-indented t
         org-hide-leading-stars t)
 #+END_SRC
-Define some places where I keep tasks and notes.
-I sync the org repo with Syncthing.
+
+Define places where to find my org files.
 #+BEGIN_SRC emacs-lisp
   (setq org-directory "~/Dropbox/Org/")
   (setq org-default-notes-file (concat org-directory "todo.org"))
@@ -1334,20 +1329,12 @@ I sync the org repo with Syncthing.
   (defconst my/org-scheduled (concat org-directory "scheduled.org")
     "Scheduled tasks.")
 #+END_SRC
-Finally, I rebind =C-c C-r= to look at my reference list globally (see org-ref below), which overrides the default binding of =org-reveal=. However, that command is quite useful, so let's bind it to =C-c r=:
-#+BEGIN_SRC emacs-lisp
-  (bind-key "C-c r" #'org-reveal org-mode-map)
-#+END_SRC
 
 Bind =M-p= and =M-n= to navigate heading more easily (these are bound to =C-c C-p/n= by default):
 #+BEGIN_SRC emacs-lisp
   (bind-keys :map org-mode-map
              ("M-p" . org-previous-visible-heading)
              ("M-n" . org-next-visible-heading))
-#+END_SRC
-=C-c C-t= is bound to ~org-todo~ by default, but I want it bound to =C-c t= as well:
-#+BEGIN_SRC emacs-lisp
-  (bind-key "C-c t" #'org-todo org-mode-map)
 #+END_SRC
 
 ** COMMENT Tags
@@ -1410,7 +1397,6 @@ And we can make it integrate with org-agenda:
 ** Exporting
 
 This makes org export smart quotes so that it uses ~``word``~ style quotes for latex export:
-
 #+BEGIN_SRC emacs-lisp
   (setq org-export-with-smart-quotes t)
 #+END_SRC
@@ -1822,30 +1808,28 @@ I can use =org-pomodoro= for a [[http://pomodorotechnique.com/][pomodoro]]. By d
   (use-package org-bullets
     :ensure t
     :config
-    (setq org-bullets-bullet-list '("•")) ; Default is '("◉" "○" "✸" "✿")
+    ;; (setq org-bullets-bullet-list '("•")) ; Default is '("◉" "○" "✸" "✿")
     (add-hook 'org-mode-hook #'org-bullets-mode))
 #+END_SRC
 
 ** Misc
 Here are a few miscellaneous things that make org mode better.
 #+BEGIN_SRC emacs-lisp
-  (setq org-pretty-entities          t ; UTF8 all the things!
-        org-support-shift-select     t ; holding shift and moving point should select things
-        org-fontify-quote-and-verse-blocks t ; provide a special face for quote and verse blocks
-        org-M-RET-may-split-line     nil ; M-RET may never split a line
-        org-enforce-todo-dependencies t ; can't finish parent before children
-        org-enforce-todo-checkbox-dependencies t ; can't finish parent before children
-        org-hide-emphasis-markers t ; make words italic or bold, hide / and *
-        org-catch-invisible-edits 'error ; don't let me edit things I can't see
-        org-startup-indented t) ; start with indentation setup
-  (setq org-highlight-latex-and-related '(latex entities)) ; set up fontlocking for latex
-  (setq org-startup-with-inline-images t) ; show inline images
-  (setq org-log-done t)
-  (setq org-goto-interface (quote outline-path-completion))
-  (setq org-ellipsis "⬎")
-  (use-package htmlize
-    :ensure t)
-#+END_SRC
+    (setq org-pretty-entities          t ; UTF8 all the things!
+          org-support-shift-select     t ; holding shift and moving point should select things
+          org-fontify-quote-and-verse-blocks t ; provide a special face for quote and verse blocks
+          org-M-RET-may-split-line     nil ; M-RET may never split a line
+          ;; org-enforce-todo-dependencies t ; can't finish parent before children
+          ;; org-enforce-todo-checkbox-dependencies t ; can't finish parent before children
+          ;; org-hide-emphasis-markers t ; make words italic or bold, hide / and *
+          org-catch-invisible-edits 'error ; don't let me edit things I can't see
+          org-startup-indented t) ; start with indentation setup
+    (setq org-highlight-latex-and-related '(latex entities)) ; set up fontlocking for latex
+    (setq org-startup-with-inline-images t) ; show inline images
+    (setq org-log-done t)
+    (setq org-goto-interface (quote outline-path-completion))
+  ;;  (setq org-ellipsis "⬎")
+   #+END_SRC
 
 For whatever reason, I have to explicitely tell org how to open pdf links. I use pdf-tools, which is loaded in [[pdf viewer]]. If pdf-tools isn't installed, it will use doc-view (the default in emacs) instead.
 
@@ -2046,13 +2030,12 @@ ESS (Emacs Speaks Statistics) is a [[http://ess.r-project.org/][great project]] 
     :bind
     (:map ess-mode-map
           ("C-a" . crux-move-beginning-of-line)
-          ("M-=" . ess-insert-S-assign)
-          ("_"   . self-insert-command)
-          ("M-p" . my/add-pipe)
-          ("C-|" . my/ess-eval-pipe-through-line)
-          :map inferior-ess-mode-map
-          ("M-=" . ess-insert-S-assign)
-          ("_"   . self-insert-command))
+          ;; ("M-=" . ess-insert-S-assign)
+          ;; ("_"   . self-insert-command)
+          ;; :map inferior-ess-mode-map
+          ;; ("M-=" . ess-insert-S-assign)
+          ;; ("_"   . self-insert-command)
+          )
     :config
     (setq ess-nuke-trailing-whitespace-p t)
     (add-hook 'ess-mode-hook
@@ -2068,6 +2051,7 @@ ESS (Emacs Speaks Statistics) is a [[http://ess.r-project.org/][great project]] 
       (setq ess-history-directory (concat user-emacs-directory "var/Rhist/"))
       (mkdir ess-history-directory t))
     (setq ess-pdf-viewer-pref "emacsclient")
+    ;; fontlocking for highlighted code
     (setq ess-R-font-lock-keywords
           (quote
            ((ess-R-fl-keyword:modifiers . t)
