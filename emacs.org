@@ -1465,63 +1465,6 @@ Defining todo states.
                 ("CANCELLED" :foreground "forest green" :weight bold))))
 #+END_SRC
 
-** COMMENT Tags
-Org tags look like =:this:= at the end of a heading.
-#+BEGIN_SRC emacs-lisp
-  ;; (setq org-tag-persistent-alist '(("jobs" . ?j)
-  ;;                                  (:startgroup . nil)
-  ;;                                  ("@work" . ?w)
-  ;;                                  ("@home" . ?h)
-  ;;                                  (:endgroup . nil)))
-#+END_SRC
-
-** COMMENT Calendar
-Not technically part of org, but I'll stick the calendar config here since I mainly use it along with org-agenda (config'ed below)
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package calendar
-  ;;   ;; built-in, :ensure t not necessary
-  ;;   :config
-  ;;   (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
-  ;;   (calendar-set-date-style 'iso)
-  ;;   (setq calendar-week-start-day 0) ; weeks start on Sunday
-  ;;   (setq calendar-date-display-form calendar-iso-date-display-form)
-  ;;   (setq holiday-christian-holidays nil)
-  ;;   (setq holiday-bahai-holidays nil)
-  ;;   (setq holiday-hebrew-holidays nil)
-  ;;   (setq holiday-islamic-holidays nil)
-  ;;   (setq holiday-oriental-holidays nil))
-#+END_SRC
-
-*** Calfw - calendar
-calfw provides a nice calendar view:
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package calfw
-  ;;   :ensure t
-  ;;   :config
-  ;;   ;; Use unicode characters
-  ;;   (setq cfw:fchar-junction ?╋
-  ;;         cfw:fchar-vertical-line ?┃
-  ;;         cfw:fchar-horizontal-line ?━
-  ;;         cfw:fchar-left-junction ?┣
-  ;;         cfw:fchar-right-junction ?┫
-  ;;         cfw:fchar-top-junction ?┯
-  ;;         cfw:fchar-top-left-corner ?┏
-  ;;         cfw:fchar-top-right-corner ?┓))
-#+END_SRC
-And we can make it integrate with org-agenda:
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package calfw-org
-  ;;   :ensure t
-  ;;   :commands (cfw:open-org-calendar)
-  ;;   :bind
-  ;;   (:map my/map ("o" . cfw:open-org-calendar))
-  ;;   :config
-  ;;   ;; Overwrite some keybindings to be more like org-agenda's:
-  ;;   (setq cfw:org-overwrite-default-keybinding t)
-  ;;   ;; Only show items with a timestamp in the calendar:
-  ;;   (setq cfw:org-agenda-schedule-args '(:timestamp)))
-#+END_SRC
-
 ** Exporting
 
 This makes org export smart quotes so that it uses ~``word``~ style quotes for latex export:
@@ -1557,7 +1500,6 @@ HTML and latex shown by default, let's add markdown:
 #+BEGIN_SRC emacs-lisp
   ;; (use-package ox-md)
 #+END_SRC
-
 ** Code blocks (org-babel)
 Org-babel is included in org. We just need to tell it which languages to load. And don't ask us if we're sure we want to run code blocks when we ~C-c C-c~. Finally, open the code block in the current window when we use ~C-'~
 
@@ -1579,6 +1521,204 @@ This will make the contents of code blocks use the same font locking (syntax hig
 #+BEGIN_SRC emacs-lisp
   (setq org-src-fontify-natively     t
         org-src-tab-acts-natively    t)
+#+END_SRC
+** Agenda
+Here's where I set which files are added to org-agenda, which controls org's global todo list, scheduling, and agenda features. I use Syncthing to keep these files in sync across computers.
+Lock to current file: =C-u C-c C-x <=
+#+BEGIN_SRC emacs-lisp
+    (use-package org-agenda
+      :bind
+      (("C-c a" . org-agenda)
+       ("C-'" . org-cycle-agenda-files) ; quickly access agenda files
+       :map my/map
+       ("a" . my/agenda)
+       :map org-agenda-mode-map
+       ("r" . org-agenda-refile) ; overrides org-agenda-redo, which I use "g" for anyway
+       ("s" . org-agenda-schedule) ; overrides saving all org buffers, also bound to C-x C-s
+       ("x" . my/org-agenda-mark-done)) ; overrides org-exit
+      :init
+      ;; set up org agenda files for the agenda
+      (setq org-agenda-files (list org-default-notes-file
+                                   my/org-research
+                                   my/org-work
+                                   my/org-life))
+      ;; ;; The calendar file might not exist yet, so only attempt to add it if it does:
+      ;; (defvar my/calendar-file (concat org-directory "gcal.org"))
+      ;; (if (file-readable-p my/calendar-file)
+      ;;     (add-to-list 'org-agenda-files my/calendar-file t))
+      ;; ;; remove C-c [ from adding org file to front of agenda
+      ;; (unbind-key "C-c [" org-mode-map)
+      :config
+      ;; (setq org-agenda-skip-deadline-if-done t ; remove done deadlines from agenda
+      ;; org-agenda-skip-scheduled-if-done t ; remove done scheduled from agenda
+      ;; don't show scheduled if the deadline is visible unless it's
+      ;; also scheduled for today:
+      ;; org-agenda-skip-scheduled-if-deadline-is-shown 'not-today
+      ;; org-deadline-warning-days 3
+      ;;) ; warn me 3 days before a deadline
+      (setq org-agenda-tags-todo-honor-ignore-options t) ; ignore scheduled items in tags todo searches
+      (setq org-agenda-tags-column 'auto)
+      (setq org-agenda-window-setup 'only-window ; use current window for agenda
+            ;; restore previous config after I'm done
+            org-agenda-restore-windows-after-quit t)
+      ;; (setq org-agenda-span 'day) ; just show today. I can "vw" to view the week
+      ;; By default, the time grid has a lot of ugly "-----" lines. Remove those:
+      ;; (setq org-agenda-time-grid
+      ;;       '((daily today remove-match) (800 1000 1200 1400 1600 1800 2000)
+      ;;         "" ""))
+      ;; I don't need to know that something is scheduled. That's why it's appearing
+      ;; on the agenda in the first place:
+      (setq org-agenda-scheduled-leaders '("" "%2dx "))
+      ;; Use nice unicode character instead of ugly = to separate agendas:
+      ;; (setq org-agenda-block-separator 8212)
+      ;; Make deadlines, especially overdue ones, stand out more:
+      (setq org-agenda-deadline-leaders '("Deadline: " "In %d days: " "OVERDUE %d day: "))
+      (setq org-agenda-current-time-string "⸻ NOW ⸻")
+      ;; The agenda is ugly by default. It doesn't properly align items and it
+      ;; includes weird punctuation. Fix it:
+      ;;   (setq org-agenda-prefix-format '((agenda . "%-12c%-14t%s")
+      ;;                                    (timeline . "  % s")
+      ;;                                    (todo . " %i %-12:c")
+      ;;                                    (tags . " %i %-12:c")
+      ;;                                    (search . " %i %-12:c")))
+
+      ;; ;;
+      ;;  (defun my/org-agenda-mark-done (&optional arg)
+      ;;     "Mark current TODO as DONE.
+      ;; See `org-agenda-todo' for more details."
+      ;;     (interactive "P")
+      ;;     (org-agenda-todo "DONE"))
+      ;;   (setq org-agenda-custom-commands
+      ;;         '((" " "Agenda"
+      ;;            ((agenda "" nil)
+      ;;             (tags "REFILE"
+      ;;                   ((org-agenda-overriding-header "Tasks to Refile")
+      ;;                    (org-tags-match-list-sublevels nil)))))
+      ;;           ("d" "deadlines"
+      ;;            ((agenda ""
+      ;;                     ((org-agenda-entry-types '(:deadline))
+      ;;                      (org-agenda-span 'fortnight)
+      ;;                      (org-agenda-time-grid nil)
+      ;;                      (org-deadline-warning-days 0)
+      ;;                      (org-agenda-skip-deadline-if-done nil)))))
+      ;;           ("b" "bibliography"
+      ;;            ((tags "CATEGORY=\"bib\""
+      ;;                   ((org-agenda-overriding-header "You've got a lot of reading to do...")))))))
+      (defun my/agenda (&optional arg)
+        (interactive)
+        (org-agenda arg " "))
+
+  (setq org-agenda-custom-commands
+        '(("c" "Work"
+           ((org-agenda-files '(my/org-research my/org-work org-default-notes-file)) ;; (5)
+            (org-agenda-sorting-strategy '(priority-up effort-down)))))))
+#+END_SRC
+
+** Capture
+I use org-capture to create short notes about all kinds of things. I can capture emails to remember for later, quick thoughts for later, RSS feeds (see [[Feed reader]]), really anything.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-capture
+    :bind*
+    ("C-c c" . org-capture)
+    :bind
+    (:map org-capture-mode-map
+          ("C-c C-j" . my/org-capture-refile-and-jump))
+    :config
+    (defun my/org-capture-refile-and-jump ()
+      (interactive)
+      "Refile the current capture, then jump to it."
+      (org-capture-refile)
+      (org-refile-goto-last-stored)))
+#+END_SRC
+
+*** Org-mu4e
+#+BEGIN_SRC emacs-lisp
+  (use-package org-mu4e
+    :after mu4e
+    :config
+    ;;store link to message if in header view, not to header query
+    (setq org-mu4e-link-query-in-headers-mode nil))
+
+#+END_SRC
+
+*** Capture templates
+#+BEGIN_SRC emacs-lisp
+  (setq org-capture-templates
+        (quote (("t" "task" entry (file org-default-notes-file)
+                 "* TODO %? \n %i")
+                ("n" "note" entry (file org-default-notes-file)
+                 "* %?\n %i")
+                ("r" "respond" entry (file org-default-notes-file)
+                 "* TODO %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n"))))
+#+END_SRC
+*** COMMENT Org-eww
+Org-eww lets me capture eww webpages with org-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-eww)
+#+END_SRC
+*** COMMENT Firefox
+This line is necessary for the [[https://addons.mozilla.org/en-US/firefox/addon/org-capture/][org capture]] extension for Firefox.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'org-protocol)
+#+END_SRC
+** Refile
+Org-refile to refile tasks.
+#+BEGIN_SRC emacs-lisp
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes (quote confirm))
+  (setq org-refile-use-outline-path t)
+  (setq org-refile-targets '((org-default-notes-file . (:maxlevel . 6))
+                             (my/org-research . (:maxlevel . 6))
+                             (my/org-work . (:level . 1))
+                             (my/org-life . (:maxlevel . 6))))
+#+END_SRC
+
+** Misc
+Here are a few miscellaneous things that make org mode better.
+#+BEGIN_SRC emacs-lisp
+    (setq org-pretty-entities          t ; UTF8 all the things!
+          org-support-shift-select     t ; holding shift and moving point should select things
+          org-fontify-quote-and-verse-blocks t ; provide a special face for quote and verse blocks
+          org-M-RET-may-split-line     nil ; M-RET may never split a line
+          ;; org-enforce-todo-dependencies t ; can't finish parent before children
+          ;; org-enforce-todo-checkbox-dependencies t ; can't finish parent before children
+          ;; org-hide-emphasis-markers t ; make words italic or bold, hide / and *
+          org-catch-invisible-edits 'error ; don't let me edit things I can't see
+          org-startup-indented t) ; start with indentation setup
+    (setq org-highlight-latex-and-related '(latex entities)) ; set up fontlocking for latex
+    (setq org-startup-with-inline-images t) ; show inline images
+    (setq org-log-done t)
+    (setq org-goto-interface (quote outline-path-completion))
+  ;;  (setq org-ellipsis "⬎")
+   #+END_SRC
+
+For whatever reason, I have to explicitely tell org how to open pdf links. I use pdf-tools, which is loaded in [[pdf viewer]]. If pdf-tools isn't installed, it will use doc-view (the default in emacs) instead.
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-file-apps
+        '((auto-mode . emacs)
+          ("\\.mm\\'" . default)
+          ("\\.x?html?\\'" . default)
+          ("\\.pdf\\'" . emacs)))
+
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-image-actual-width '(300))
+#+END_SRC
+
+Make =C-a= and =C-e= work more like how I want:
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-special-ctrl-a/e t)
+#+END_SRC
+
+Org can preview latex fragments with =C-c C-x C-l= but it uses dvipng by default. Let's switch it to imagemagick:
+#+BEGIN_SRC emacs-lisp
+  (setq org-preview-latex-default-process 'imagemagick)
 #+END_SRC
 
 ** COMMENT References (org-ref)
@@ -1700,188 +1840,62 @@ I use org-ref to manage my references.
     (use-package org-ref-latex)
     ) ; ends use-package org-ref
 #+END_SRC
-** Agenda
-Here's where I set which files are added to org-agenda, which controls org's global todo list, scheduling, and agenda features. I use Syncthing to keep these files in sync across computers.
-Lock to current file: =C-u C-c C-x <=
+
+** COMMENT Calendar
+Not technically part of org, but I'll stick the calendar config here since I mainly use it along with org-agenda (config'ed below)
 #+BEGIN_SRC emacs-lisp
-  (use-package org-agenda
-    :bind
-    (("C-c a" . org-agenda)
-     ("C-'" . org-cycle-agenda-files) ; quickly access agenda files
-     :map my/map
-     ("a" . my/agenda)
-     :map org-agenda-mode-map
-     ("r" . org-agenda-refile) ; overrides org-agenda-redo, which I use "g" for anyway
-     ("s" . org-agenda-schedule) ; overrides saving all org buffers, also bound to C-x C-s
-     ("x" . my/org-agenda-mark-done)) ; overrides org-exit
-    :init
-    ;; set up org agenda files for the agenda
-    (setq org-agenda-files (list org-default-notes-file
-                                 my/org-research
-                                 my/org-work
-                                 my/org-life))
-    ;; ;; The calendar file might not exist yet, so only attempt to add it if it does:
-    ;; (defvar my/calendar-file (concat org-directory "gcal.org"))
-    ;; (if (file-readable-p my/calendar-file)
-    ;;     (add-to-list 'org-agenda-files my/calendar-file t))
-    ;; ;; remove C-c [ from adding org file to front of agenda
-    ;; (unbind-key "C-c [" org-mode-map)
-    :config
-    (setq org-agenda-skip-deadline-if-done t ; remove done deadlines from agenda
-          org-agenda-skip-scheduled-if-done t ; remove done scheduled from agenda
-          ;; don't show scheduled if the deadline is visible unless it's
-          ;; also scheduled for today:
-          ;; org-agenda-skip-scheduled-if-deadline-is-shown 'not-today
-          ;; org-deadline-warning-days 3
-          ) ; warn me 3 days before a deadline
-    (setq org-agenda-tags-todo-honor-ignore-options t) ; ignore scheduled items in tags todo searches
-    (setq org-agenda-tags-column 'auto)
-    (setq org-agenda-window-setup 'only-window ; use current window for agenda
-          ;; restore previous config after I'm done
-          org-agenda-restore-windows-after-quit t)
-    ;; (setq org-agenda-span 'day) ; just show today. I can "vw" to view the week
-    ;; By default, the time grid has a lot of ugly "-----" lines. Remove those:
-    (setq org-agenda-time-grid
-          '((daily today remove-match) (800 1000 1200 1400 1600 1800 2000)
-            "" ""))
-    ;; I don't need to know that something is scheduled. That's why it's appearing
-    ;; on the agenda in the first place:
-    ;; (setq org-agenda-scheduled-leaders '("" "%2dx "))
-    ;; Use nice unicode character instead of ugly = to separate agendas:
-    (setq org-agenda-block-separator 8212)
-    ;; Make deadlines, especially overdue ones, stand out more:
-    (setq org-agenda-deadline-leaders '("Deadline: " "In %d days: " "OVERDUE %d day: "))
-    (setq org-agenda-current-time-string "⸻ NOW ⸻")
-    ;; The agenda is ugly by default. It doesn't properly align items and it
-    ;; includes weird punctuation. Fix it:
-  ;;   (setq org-agenda-prefix-format '((agenda . "%-12c%-14t%s")
-  ;;                                    (timeline . "  % s")
-  ;;                                    (todo . " %i %-12:c")
-  ;;                                    (tags . " %i %-12:c")
-  ;;                                    (search . " %i %-12:c")))
-  )
-  ;; ;;
- ;;  (defun my/org-agenda-mark-done (&optional arg)
-  ;;     "Mark current TODO as DONE.
-  ;; See `org-agenda-todo' for more details."
-  ;;     (interactive "P")
-  ;;     (org-agenda-todo "DONE"))
-  ;;   (setq org-agenda-custom-commands
-  ;;         '((" " "Agenda"
-  ;;            ((agenda "" nil)
-  ;;             (tags "REFILE"
-  ;;                   ((org-agenda-overriding-header "Tasks to Refile")
-  ;;                    (org-tags-match-list-sublevels nil)))))
-  ;;           ("d" "deadlines"
-  ;;            ((agenda ""
-  ;;                     ((org-agenda-entry-types '(:deadline))
-  ;;                      (org-agenda-span 'fortnight)
-  ;;                      (org-agenda-time-grid nil)
-  ;;                      (org-deadline-warning-days 0)
-  ;;                      (org-agenda-skip-deadline-if-done nil)))))
-  ;;           ("b" "bibliography"
-  ;;            ((tags "CATEGORY=\"bib\""
-  ;;                   ((org-agenda-overriding-header "You've got a lot of reading to do...")))))))
-  ;;   (defun my/agenda (&optional arg)
-  ;;     (interactive)
-  ;;     (org-agenda arg " ")))
+  ;; (use-package calendar
+  ;;   ;; built-in, :ensure t not necessary
+  ;;   :config
+  ;;   (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
+  ;;   (calendar-set-date-style 'iso)
+  ;;   (setq calendar-week-start-day 0) ; weeks start on Sunday
+  ;;   (setq calendar-date-display-form calendar-iso-date-display-form)
+  ;;   (setq holiday-christian-holidays nil)
+  ;;   (setq holiday-bahai-holidays nil)
+  ;;   (setq holiday-hebrew-holidays nil)
+  ;;   (setq holiday-islamic-holidays nil)
+  ;;   (setq holiday-oriental-holidays nil))
 #+END_SRC
 
-** COMMENT Capture
-I use org-capture to create short notes about all kinds of things. I can capture emails to remember for later, quick thoughts for later, RSS feeds (see [[Feed reader]]), really anything.
-
+*** Calfw - calendar
+calfw provides a nice calendar view:
 #+BEGIN_SRC emacs-lisp
-  (use-package org-capture
-    :bind*
-    ("C-c c" . org-capture)
-    :bind
-    (:map org-capture-mode-map
-          ("C-c C-j" . my/org-capture-refile-and-jump))
-    :config
-    (defun my/org-capture-refile-and-jump ()
-      (interactive)
-      "Refile the current capture, then jump to it."
-      (org-capture-refile)
-      (org-refile-goto-last-stored)))
+  ;; (use-package calfw
+  ;;   :ensure t
+  ;;   :config
+  ;;   ;; Use unicode characters
+  ;;   (setq cfw:fchar-junction ?╋
+  ;;         cfw:fchar-vertical-line ?┃
+  ;;         cfw:fchar-horizontal-line ?━
+  ;;         cfw:fchar-left-junction ?┣
+  ;;         cfw:fchar-right-junction ?┫
+  ;;         cfw:fchar-top-junction ?┯
+  ;;         cfw:fchar-top-left-corner ?┏
+  ;;         cfw:fchar-top-right-corner ?┓))
 #+END_SRC
-*** Org-eww
-Org-eww lets me capture eww webpages with org-mode
-
+And we can make it integrate with org-agenda:
 #+BEGIN_SRC emacs-lisp
-  (use-package org-eww)
-#+END_SRC
-
-*** Org-mu4e
-#+BEGIN_SRC emacs-lisp
-  (use-package org-mu4e
-    :config
-    ;;store link to message if in header view, not to header query
-    (setq org-mu4e-link-query-in-headers-mode nil)
-    )
-
-#+END_SRC
-*** Firefox
-This line is necessary for the [[https://addons.mozilla.org/en-US/firefox/addon/org-capture/][org capture]] extension for Firefox.
-
-#+BEGIN_SRC emacs-lisp
-  (require 'org-protocol)
+  ;; (use-package calfw-org
+  ;;   :ensure t
+  ;;   :commands (cfw:open-org-calendar)
+  ;;   :bind
+  ;;   (:map my/map ("o" . cfw:open-org-calendar))
+  ;;   :config
+  ;;   ;; Overwrite some keybindings to be more like org-agenda's:
+  ;;   (setq cfw:org-overwrite-default-keybinding t)
+  ;;   ;; Only show items with a timestamp in the calendar:
+  ;;   (setq cfw:org-agenda-schedule-args '(:timestamp)))
 #+END_SRC
 
-*** Capture templates
-And now for the capture templates themselves. It's a bit complicated, but [[http://orgmode.org/manual/Capture-templates.html][the manual]] does a great job explaining:
+** COMMENT Tags
+Org tags look like =:this:= at the end of a heading.
 #+BEGIN_SRC emacs-lisp
-  ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
-  (setq org-capture-templates
-        (quote (("t" "todo" entry (file "~/git/org/refile.org")
-                 "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-                ("r" "respond" entry (file "~/git/org/refile.org")
-                 "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-                ("n" "note" entry (file "~/git/org/refile.org")
-                 "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-                ("j" "Journal" entry (file+datetree "~/git/org/diary.org")
-                 "* %?\n%U\n" :clock-in t :clock-resume t)
-                ("w" "org-protocol" entry (file "~/git/org/refile.org")
-                 "* TODO Review %c\n%U\n" :immediate-finish t)
-                ("m" "Meeting" entry (file "~/git/org/refile.org")
-                 "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-                ("p" "Phone call" entry (file "~/git/org/refile.org")
-                 "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-                ("h" "Habit" entry (file "~/git/org/refile.org")
-                 "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
-
-  (setq org-capture-templates
-        '(("t" "todo" entry (file+headline "~/todo.org" "Tasks")
-           "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n")))
-
-
-  (setq org-capture-templates
-        `(
-          ("s" "store" entry (file ,my/org-inbox)
-           "* TODO %?\n %a \n %i")
-          ("t" "task" entry (file  ,my/org-inbox)
-           "* TODO %? \n %i")
-          ("n" "note" entry (file ,my/org-notes)
-           "* %?\n %i")
-
-          ))
-
-  task
-  meeting
-  respond
-  note
-#+END_SRC
-
-** COMMENT Refile
-Org-refile lets me quickly move around headings in org files. It plays nicely with org-capture, which I use to turn emails into TODOs easily (among other things, of course)
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-allow-creating-parent-nodes (quote confirm))
-  (setq org-refile-use-outline-path t)
-  (setq org-refile-targets '((org-default-notes-file . (:maxlevel . 6))
-                             (my/org-inbox . (:maxlevel . 2))
-                             (my/org-scheduled . (:level . 1))
-                             (my/org-notes . (:maxlevel . 6))))
+  ;; (setq org-tag-persistent-alist '(("jobs" . ?j)
+  ;;                                  (:startgroup . nil)
+  ;;                                  ("@work" . ?w)
+  ;;                                  ("@home" . ?h)
+  ;;                                  (:endgroup . nil)))
 #+END_SRC
 ** COMMENT Appt
 Technically, =appt.el= isn't a part of org mode.
@@ -1971,154 +1985,9 @@ I can use =org-pomodoro= for a [[http://pomodorotechnique.com/][pomodoro]]. By d
 ** Better bullets
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-bullets
-    :ensure t
-    :config
-    ;; (setq org-bullets-bullet-list '("•")) ; Default is '("◉" "○" "✸" "✿")
-    (add-hook 'org-mode-hook #'org-bullets-mode))
-#+END_SRC
-
-** Misc
-Here are a few miscellaneous things that make org mode better.
-#+BEGIN_SRC emacs-lisp
-    (setq org-pretty-entities          t ; UTF8 all the things!
-          org-support-shift-select     t ; holding shift and moving point should select things
-          org-fontify-quote-and-verse-blocks t ; provide a special face for quote and verse blocks
-          org-M-RET-may-split-line     nil ; M-RET may never split a line
-          ;; org-enforce-todo-dependencies t ; can't finish parent before children
-          ;; org-enforce-todo-checkbox-dependencies t ; can't finish parent before children
-          ;; org-hide-emphasis-markers t ; make words italic or bold, hide / and *
-          org-catch-invisible-edits 'error ; don't let me edit things I can't see
-          org-startup-indented t) ; start with indentation setup
-    (setq org-highlight-latex-and-related '(latex entities)) ; set up fontlocking for latex
-    (setq org-startup-with-inline-images t) ; show inline images
-    (setq org-log-done t)
-    (setq org-goto-interface (quote outline-path-completion))
-  ;;  (setq org-ellipsis "⬎")
-   #+END_SRC
-
-For whatever reason, I have to explicitely tell org how to open pdf links. I use pdf-tools, which is loaded in [[pdf viewer]]. If pdf-tools isn't installed, it will use doc-view (the default in emacs) instead.
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-file-apps
-        '((auto-mode . emacs)
-          ("\\.mm\\'" . default)
-          ("\\.x?html?\\'" . default)
-          ("\\.pdf\\'" . emacs)))
-
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-image-actual-width '(300))
-#+END_SRC
-
-Make =C-a= and =C-e= work more like how I want:
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-special-ctrl-a/e t)
-#+END_SRC
-
-Org can preview latex fragments with =C-c C-x C-l= but it uses dvipng by default. Let's switch it to imagemagick:
-#+BEGIN_SRC emacs-lisp
-  (setq org-preview-latex-default-process 'imagemagick)
-#+END_SRC
-* Email
-Using mu4e for reading email.
-#+BEGIN_SRC emacs-lisp
-  (use-package mu4e
-    :load-path "/usr/local/share/emacs/site-lisp/mu4e"
-    :commands mu4e
-    :config
-    (use-package mu4e-contrib)
-    (progn
-      (setq mu4e-maildir "/home/luka/email")
-      ;; (setq mu4e-maildir (expand-file-name "~/email"))
-      (setq mu4e-html2text-command
-            'mu4e-shr2text)
-      (setq mu4e-context-policy 'pick-first)
-      (setq mu4e-completing-read-function 'ivy-completing-read)
-      (setq message-send-mail-function 'smtpmail-send-it)
-      (setq mu4e-view-html-plaintext-ratio-heuristic 50)
-      ;; use 'fancy' non-ascii characters in various places in mu4e
-      (setq mu4e-use-fancy-chars t)
-      (setq mu4e-contexts
-            (list (make-mu4e-context
-                   :name "nuig"
-                   :enter-func (lambda () (mu4e-message "Switch to the work context"))
-                   :match-func (lambda (msg)
-                                 (when msg
-                                   (s-prefix? "/nuig/" (mu4e-message-field msg :maildir))))
-                   :vars '((user-mail-address . "luka.krajnc@nuigalway.ie")
-                           (mu4e-sent-folder . "/nuig/Sent Items")
-                           (mu4e-drafts-folder . "/nuig/Drafts")
-                           (mu4e-trash-folder . "/nuig/Deleted Items")
-                           (mu4e-sent-messages-behavior . sent)
-                           (smtpmail-default-smtp-server . "outlook.com")
-                           (smtpmail-smtp-server . "outlook.com")
-                           (smtpmail-stream-type . starttls)
-                           (smtpmail-smtp-service . 25)))
-                  ))
-      (setq mu4e-get-mail-command "mbsync -a")
-      (setq mu4e-update-interval 300)
-
-      ;; I want my format=flowed thank you very much
-      ;; mu4e sets up visual-line-mode and also fill (M-q) to do the right thing
-      ;; each paragraph is a single long line; at sending, emacs will add the
-      ;; special line continuation characters.
-      (setq mu4e-compose-format-flowed t)
-
-      ;; every new email composition gets its own frame! (window)
-      (setq mu4e-compose-in-new-frame t)
-
-      ;; give me ISO(ish) format date-time stamps in the header list
-      (setq mu4e-headers-date-format "%Y-%m-%d %H:%M")
-      ;; (setq mu4e-view-show-addresses t)
-      ;; (setq mu4e-headers-include-related t)
-      ;; (setq mu4e-headers-show-threads nil)
-      ;; (setq mu4e-headers-skip-duplicates t)
-      ;; (setq mu4e-split-view 'vertical)
-
-      ;; compose with the current context if no context matches;
-      (setq mu4e-compose-context-policy nil)
-
-      ;; shortcuts
-      (setq mu4e-maildir-shortcuts
-            '(("/nuig/Inbox" . ?n)
-              ("/nuig/Archive" . ?a)
-              ))
-
-      (setq mu4e-bookmarks '(("flag:unread AND NOT flag:trashed AND NOT (maildir:/nuig/Deleted Items)"
-                              "Unread messages"     ?u)
-                             ("date:today..now"                  "Today's messages"     ?t)
-                             ("date:7d..now"                     "Last 7 days"          ?w)
-                             ("mime:image/*"                     "Messages with images" ?p)
-                             ))
-      ;; change filenames to comply with mbsync, otherwise you get duplicate errors
-      (setq mu4e-change-filenames-when-moving t)
-
-      ;; a bit about me
-      (setq
-       user-full-name  "Luka Krajnc"
-       mu4e-compose-signature ""
-       mu4e-compose-signature-auto-include nil
-       mu4e-attachment-dir "~/Downloads")
-
-      (add-to-list 'mu4e-view-actions
-                   '("View in browser" . mu4e-action-view-in-browser) t)
-
-      ;; attempt to show images when viewing messages
-      (setq mu4e-view-show-images t)
-
-      ;; don't keep message buffers around
-      (setq message-kill-buffer-on-exit t)))
-
-
-  ;; ;; use msmtp
-  ;; (setq message-send-mail-function 'message-send-mail-with-sendmail)
-  ;; (setq sendmail-program "/usr/local/bin/msmtp")
-  ;; ;; tell msmtp to choose the SMTP server according to the from field in the outgoing email
-  ;; (setq message-sendmail-extra-arguments '("--read-envelope-from"))
-  ;; (setq message-sendmail-f-is-evil 't)
+(use-package org-bullets
+  :init
+  (add-hook 'org-mode-hook #'org-bullets-mode))
 #+END_SRC
 * Shells
 
