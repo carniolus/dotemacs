@@ -26,8 +26,6 @@ The [[https://github.com/jwiegley/use-package][use-package]] package, which I en
   (setq visible-bell t)                          ; No beep when reporting errors
   (column-number-mode t)                         ; Show column number in mode-line
   (mouse-wheel-mode t)                           ; Mouse-wheel enabled
-  (setq european-calendar-style 't)              ; European style calendar
-  (setq calendar-week-start-day 1)               ; Week starts monday
   (setq ps-paper-type 'a4)                       ; Specify printing format
   (setq auto-save-timeout 60)                    ; Autosave every minute
   (setq confirm-kill-emacs 'y-or-n-p)            ; Confirm quit
@@ -1729,51 +1727,53 @@ Org can preview latex fragments with =C-c C-x C-l= but it uses dvipng by default
   (setq org-preview-latex-default-process 'imagemagick)
 #+END_SRC
 
-** COMMENT Calendar
-Not technically part of org, but I'll stick the calendar config here since I mainly use it along with org-agenda (config'ed below)
+** Calendar
+Calendar config, not part of org but related.
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package calendar
-  ;;   ;; built-in, :ensure t not necessary
-  ;;   :config
-  ;;   (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
-  ;;   (calendar-set-date-style 'iso)
-  ;;   (setq calendar-week-start-day 0) ; weeks start on Sunday
-  ;;   (setq calendar-date-display-form calendar-iso-date-display-form)
-  ;;   (setq holiday-christian-holidays nil)
-  ;;   (setq holiday-bahai-holidays nil)
-  ;;   (setq holiday-hebrew-holidays nil)
-  ;;   (setq holiday-islamic-holidays nil)
-  ;;   (setq holiday-oriental-holidays nil))
+  (use-package calendar
+    ;; built-in, :ensure t not necessary
+    :config
+    (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
+    (calendar-set-date-style 'iso)
+    (setq calendar-date-display-form calendar-iso-date-display-form)
+    (setq european-calendar-style 't)              ; European style calendar
+    (setq calendar-week-start-day 1)               ; Week starts monday
+    (setq holiday-christian-holidays nil)
+    (setq holiday-bahai-holidays nil)
+    (setq holiday-hebrew-holidays nil)
+    (setq holiday-islamic-holidays nil)
+    (setq holiday-oriental-holidays nil))
 #+END_SRC
 
 *** Calfw - calendar
 calfw provides a nice calendar view:
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package calfw
-  ;;   :ensure t
-  ;;   :config
-  ;;   ;; Use unicode characters
-  ;;   (setq cfw:fchar-junction ?╋
-  ;;         cfw:fchar-vertical-line ?┃
-  ;;         cfw:fchar-horizontal-line ?━
-  ;;         cfw:fchar-left-junction ?┣
-  ;;         cfw:fchar-right-junction ?┫
-  ;;         cfw:fchar-top-junction ?┯
-  ;;         cfw:fchar-top-left-corner ?┏
-  ;;         cfw:fchar-top-right-corner ?┓))
+  (use-package calfw
+    :ensure t
+    :config
+    ;; Use unicode characters
+    (setq cfw:fchar-junction ?╋
+          cfw:fchar-vertical-line ?┃
+          cfw:fchar-horizontal-line ?━
+          cfw:fchar-left-junction ?┣
+          cfw:fchar-right-junction ?┫
+          cfw:fchar-top-junction ?┯
+          cfw:fchar-top-left-corner ?┏
+          cfw:fchar-top-right-corner ?┓))
 #+END_SRC
+
 And we can make it integrate with org-agenda:
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package calfw-org
-  ;;   :ensure t
-  ;;   :commands (cfw:open-org-calendar)
-  ;;   :bind
-  ;;   (:map my/map ("o" . cfw:open-org-calendar))
-  ;;   :config
-  ;;   ;; Overwrite some keybindings to be more like org-agenda's:
-  ;;   (setq cfw:org-overwrite-default-keybinding t)
-  ;;   ;; Only show items with a timestamp in the calendar:
-  ;;   (setq cfw:org-agenda-schedule-args '(:timestamp)))
+  (use-package calfw-org
+    :ensure t
+    :commands (cfw:open-org-calendar)
+    :bind
+    (:map my/map ("o" . cfw:open-org-calendar))
+    :config
+    ;; Overwrite some keybindings to be more like org-agenda's:
+    (setq cfw:org-overwrite-default-keybinding t)
+    ;; Only show items with a timestamp in the calendar:
+    (setq cfw:org-agenda-schedule-args '(:timestamp)))
 #+END_SRC
 
 ** COMMENT Appt
