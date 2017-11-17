@@ -1,10 +1,11 @@
 #+author: Luka Krajnc
 #+STARTUP: indent
-#+title: Emacs settings
+#+title: Emacs configuration
 #+PROPERTY: header-args :results silent :tangle yes
 
 * Intro
-This file contains my Emacs configuration, mostly copied from  [[https://github.com/jabranham/emacs/blob/master/emacs.org][here]]. I usually run Emacs as a daemon using a [[http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=181bd848eb9662759f076b31a32f6588e9eb58b4][systemd service]]; the configuration is loaded upon login. To start a new frame, I call =emacsclient -c=. I've setup a desktop file to make that easier (and so I don't have to fire up a terminal to run Emacs). This seems to work better if all the packages are installed already, which is the case unless my =elpa/= folder got deleted or I'm setting up a new machine. To do that, I can just stop the systemd service and start Emacs normally.
+This file contains my Emacs configuration, mostly inspired by [[https://github.com/jabranham/emacs/blob/master/emacs.org][this]]. Emacs is usually run as a daemon using a [[http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=181bd848eb9662759f076b31a32f6588e9eb58b4][systemd service]]; the configuration is loaded upon login. If a fresh install, run first time manually.
+
 ** Always demand
 The [[https://github.com/jwiegley/use-package][use-package]] package, which I ensured was installed in [[file:init.el][init.el]], is a convenient way of keeping track of packages. It also really cleverly delays loading packages until they're actually needed, thus (greatly) reducing Emacs's startup time. However, I usually run Emacs as a [[http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=181bd848eb9662759f076b31a32f6588e9eb58b4][systemd unit]]. Since that's the case, I'd really rather Emacs just go ahead and load everything up:
 #+BEGIN_SRC emacs-lisp
@@ -534,7 +535,7 @@ Prompt me to save changed buffers if I'm closing the last frame (and Emacs is ru
 #+END_SRC
 
 ** Transposing
-I can use this package to swap the window layout easily:
+I can use this function to swap the window layout easily:
 
 #+BEGIN_SRC emacs-lisp
   (defun my/toggle-window-split ()
@@ -1676,6 +1677,13 @@ Org-refile to refile tasks.
                              (my/org-life . (:maxlevel . 6))))
 #+END_SRC
 
+** Better bullets
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :init
+  (add-hook 'org-mode-hook #'org-bullets-mode))
+#+END_SRC
+
 ** Misc
 Here are a few miscellaneous things that make org mode better.
 #+BEGIN_SRC emacs-lisp
@@ -1980,14 +1988,6 @@ I can use =org-pomodoro= for a [[http://pomodorotechnique.com/][pomodoro]]. By d
     :ensure t
     :commands (org-pomodoro)
     )
-#+END_SRC
-
-** Better bullets
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-bullets
-  :init
-  (add-hook 'org-mode-hook #'org-bullets-mode))
 #+END_SRC
 * Shells
 
@@ -2398,11 +2398,6 @@ I autocommit a few files, like notes and todo:
   `((".*" "~/.emacs.d/autosave/" t)))
 
 #+END_SRC
-* Internet
-#+BEGIN_SRC  emacs-lisp
-;; set specific browser to open links
-(setq browse-url-browser-function 'browse-url-firefox)
-#+END_SRC
 
 * Diff
 ** ediff
@@ -2565,7 +2560,7 @@ Projectile makes using projects easier in emacs. It also plays well with helm, s
 #+END_SRC
 
 * Computer specific
-
+If on my laptop, do something else than if on my work machine.
 #+BEGIN_SRC emacs-lisp
   (cond
    ((string-equal system-name "kea")
@@ -2575,11 +2570,34 @@ Projectile makes using projects easier in emacs. It also plays well with helm, s
     (progn
       ((setq x-super-keysym 'meta)))))
 #+END_SRC
+* Internet
+
+#+BEGIN_SRC emacs-lisp
+  (setq browse-url-browser-function
+        '((".*google.com.*" . browse-url-firefox)
+          ("." . browse-url-firefox)))
+#+END_SRC
+
+
+* COMMENT Google translate
+I can query [[https://translate.google.com][Google translate]] from within Emacs. Especially useful since I'm in Sweden at the moment and receive a bunch of emails in Swedish:
+#+BEGIN_SRC emacs-lisp
+  (use-package google-translate
+    :ensure t
+    :bind
+    (:map mu4e-view-mode-map
+          ("C-c C-t" . google-translate-at-point))
+    :config
+    (setq google-translate-default-target-language "en")
+    ;; It won't ask for the input language. If I need it to, call the
+    ;; translation command with a C-u prefix:
+    (setq google-translate-default-source-language "sv"))
+#+END_SRC
 
 
 
 * COMMENT To be used
-** 10 Markdown
+** COMMENT 10 Markdown
 Markdown mode for Markdown editing!
 
 #+BEGIN_SRC emacs-lisp
@@ -2608,7 +2626,7 @@ Of course, markdown contains a yaml header, so we need yaml-mode as well:
     :mode (("\\.yml\\'" . yaml-mode)))
 #+END_SRC
 
-** 10 Rainbow delimiters
+** COMMENT 10 Rainbow delimiters
 #+BEGIN_SRC emacs-lisp
 (use-package rainbow-delimiters
   :ensure t)
@@ -2619,7 +2637,7 @@ Of course, markdown contains a yaml header, so we need yaml-mode as well:
   (add-hook 'prog-mode-hook #'rainbow-mode))
 #+END_SRC
 
-** 10 System management
+** COMMENT 10 System management
 *** System packages
 This is a collection of functions I wrote to help me manage installed system packages with emacs. You can find the package [[https://github.com/jabranham/system-packages][on github]]
 
@@ -2652,7 +2670,7 @@ This adds syntax highlighting for it (Emacs can do a decent job out-of-the box w
     :ensure t)
 #+END_SRC
 
-** 10 Browser (eww)
+** COMMENT 10 Browser (eww)
 Use Emacs' built in =eww= broswer (the Emacs Web Wowser!) by default.
 =browse-url-browser-function= can take a list of regex's and associate a specific browser with matches. So use eww for everything except a few things that don't work well:
 
@@ -2704,7 +2722,7 @@ By default, =M-s M-w= searches for text in the region. I overwrite it to search 
       (call-interactively 'eww)))
 #+END_SRC
 
-** 10 Sometimes I type DOuble LEtters
+** COMMENT 10 Sometimes I type DOuble LEtters
 ....instead of Single Letter caps. This fixes that:
 #+BEGIN_SRC emacs-lisp
   (defun dcaps-to-scaps ()
@@ -2764,7 +2782,7 @@ Everywhere else you can zoom with =C--= and =C-+=. Let's make Emacs follow that 
              ("C--" . text-scale-decrease))
 #+END_SRC
 
-** 10 saasasas
+** COMMENT 10 saasasas
 
 # ** Alerts
 # Set it up so Emacs can send system notifications:
@@ -2776,7 +2794,7 @@ Everywhere else you can zoom with =C--= and =C-+=. Let's make Emacs follow that 
 #         (setq alert-default-style 'libnotify)))
 # #+END_SRC
 
-** 10 Phython
+** COMMENT 10 Phython
 # * Python
 The package is called python, the mode is python-mode:
 #+BEGIN_SRC emacs-lisp
@@ -2797,7 +2815,7 @@ Elpy is a ton of customizations for python. Load it up:
       (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
       (add-hook 'elpy-mode-hook 'flycheck-mode)))
 #+END_SRC
-** 10 Webpage editing
+** COMMENT 10 Webpage editing
 *** HTML and friends
 Web-mode takes care of a lot of html annoyances:
 
@@ -2827,14 +2845,14 @@ And CSS/SCSS is handled nicely by this package:
     ("\\.scss\\'" . scss-mode))
 #+END_SRC
 
-** 10 ctrlz z
+** COMMENT 10 ctrlz z
 In my world, =C-z= is undo, not minimize emacs:
 
 #+BEGIN_SRC emacs-lisp
   (bind-key "C-z" #'undo)
 #+END_SRC
 
-** 10 Encryption
+** COMMENT 10 Encryption
 #+BEGIN_SRC emacs-lisp
   (use-package epa
     :config
