@@ -2408,151 +2408,6 @@ Of course, markdown contains a yaml header, so we need yaml-mode as well:
   (add-hook 'prog-mode-hook #'rainbow-mode))
 #+END_SRC
 
-** COMMENT 10 System management
-*** System packages
-This is a collection of functions I wrote to help me manage installed system packages with emacs. You can find the package [[https://github.com/jabranham/system-packages][on github]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package system-packages
-    :load-path "pkg/system-packages"
-    :bind ("<f5>" . hydra/system-packages/body)
-    :config
-    (defhydra hydra/system-packages ()
-      "Manage system packages"
-      ("i" system-packages-install "install" :exit t)
-      ("s" system-packages-search "search" :exit t)
-      ("U" system-packages-uninstall "uninstall" :exit t)
-      ("u" system-packages-update "update" :exit t)
-      ("l" system-packages-list-installed-packages "list installed" :exit t)
-      ("O" system-packages-remove-orphaned "remove orphans" :exit t)))
-#+END_SRC
-*** PKGBUILD
-Arch linux uses PKGBUILD files to describe built information for packages. This provides an Emacs mode:
-#+BEGIN_SRC emacs-lisp
-  (use-package pkgbuild-mode
-    :ensure t
-    :mode ("/PKGBUILD$" . pkgbuild-mode))
-#+END_SRC
-*** systemd
-=systemd= keeps track of daemons running and the like.
-This adds syntax highlighting for it (Emacs can do a decent job out-of-the box with =conf-mode=)
-#+BEGIN_SRC emacs-lisp
-  (use-package systemd
-    :ensure t)
-#+END_SRC
-
-** COMMENT 10 Browser (eww)
-Use Emacs' built in =eww= broswer (the Emacs Web Wowser!) by default.
-=browse-url-browser-function= can take a list of regex's and associate a specific browser with matches. So use eww for everything except a few things that don't work well:
-
-#+BEGIN_SRC emacs-lisp
-  (setq browse-url-browser-function
-        '((".*login.utexas.*" . browse-url-firefox)
-          (".*utdirect.*utexas.*" . browse-url-firefox)
-          (".*reddit.*" . browse-url-firefox)
-          (".*github.*" . browse-url-firefox)
-          (".*youtube.*" . browse-url-firefox)
-          (".*youtu.be*" . browse-url-firefox)
-          (".apsanet.*" . browse-url-firefox)
-          ("." . eww-browse-url)))
-#+END_SRC
-
-If a webpage requires more than eww can handle, I can switch to the system default by tapping =&= or =0=:
-#+BEGIN_SRC emacs-lisp
-  (use-package eww
-    :bind
-    (:map eww-mode-map
-          ("0" . eww-browse-with-external-browser)))
-#+END_SRC
-
-=eww-lnum= makes following links a little easier:
-#+BEGIN_SRC emacs-lisp
-  (use-package eww-lnum
-    :ensure t
-    :after eww
-    :bind
-    (:map eww-mode-map
-          ("f" . eww-lnum-follow)
-          ("F" . eww-lnum-universal)))
-#+END_SRC
-
-By default, =M-s M-w= searches for text in the region. I overwrite it to search for text in region if active and not whitespace, prompt otherwise:
-#+BEGIN_SRC emacs-lisp
-  (defun eww-search-words ()
-    "Search the web for the text between BEG and END.
-     If region is active (and not whitespace), search the web for
-     the text between BEG and END.  Else, prompt the user for a search
-     string.  See the `eww-search-prefix' variable for the search
-     engine used."
-    (interactive)
-    (if (use-region-p)
-        (let ((region-string (buffer-substring (region-beginning) (region-end))))
-          (if (not (string-match-p "\\`[ \n\t\r\v\f]*\\'" region-string))
-              (eww region-string)
-            (call-interactively 'eww)))
-      (call-interactively 'eww)))
-#+END_SRC
-
-** COMMENT 10 Sometimes I type DOuble LEtters
-....instead of Single Letter caps. This fixes that:
-#+BEGIN_SRC emacs-lisp
-  (defun dcaps-to-scaps ()
-    "Convert word in DOuble CApitals to Single Capitals."
-    (interactive)
-    (and (= ?w (char-syntax (char-before)))
-         (save-excursion
-           (and (if (called-interactively-p 'any)
-                    (skip-syntax-backward "w")
-                  (= -3 (skip-syntax-backward "w")))
-                (let (case-fold-search)
-                  (looking-at "\\b[[:upper:]]\\{2\\}[[:lower:]]"))
-                (capitalize-word 1)))))
-
-  (define-minor-mode dubcaps-mode
-    "Toggle `dubcaps-mode'.  Converts words in DOuble CApitals to
-  Single Capitals as you type."
-    :init-value nil
-    :lighter (" DC")
-    (if dubcaps-mode
-        (add-hook 'post-self-insert-hook #'dcaps-to-scaps nil 'local)
-      (remove-hook 'post-self-insert-hook #'dcaps-to-scaps 'local)))
-
-  (add-hook 'text-mode-hook #'dubcaps-mode)
-#+END_SRC
-*** 10 Blinking cursor & highlight line
-A blinking cursor gets kinda annoying, so get rid of it:
-
-#+BEGIN_SRC emacs-lisp
-  (blink-cursor-mode -1)
-#+END_SRC
-
-Also, I like the current line to be highlighted. Makes it easy to see where I am:
-
-#+BEGIN_SRC emacs-lisp
-  (global-hl-line-mode)
-#+END_SRC
-
-*** 10 Replace selected text
-Emacs by default doesn't replace selected text if you start typing over it. Since that's the behavior of virtually all other programs, let's make emacs do that too:
-
-#+BEGIN_SRC emacs-lisp
-  (delete-selection-mode)
-#+END_SRC
-*** 10 Enable disabled commands
-Emacs thinks that some new users may find some commands confusing, so they're disabled by default. I use these every now and then, so let's enable them by default:
-
-#+BEGIN_SRC emacs-lisp
-  (put 'downcase-region 'disabled nil)
-  (put 'upcase-region 'disabled nil)
-  (put 'narrow-to-region 'disabled nil)
-#+END_SRC
-*** 10 Zooming
-Everywhere else you can zoom with =C--= and =C-+=. Let's make Emacs follow that convention:
-#+BEGIN_SRC emacs-lisp
-  (bind-keys ("C-+" . text-scale-increase)
-             ("C--" . text-scale-decrease))
-#+END_SRC
-
 ** COMMENT 10 saasasas
 
 # ** Alerts
@@ -2565,27 +2420,6 @@ Everywhere else you can zoom with =C--= and =C-+=. Let's make Emacs follow that 
 #         (setq alert-default-style 'libnotify)))
 # #+END_SRC
 
-** COMMENT 10 Phython
-# * Python
-The package is called python, the mode is python-mode:
-#+BEGIN_SRC emacs-lisp
-  (use-package python
-    :mode ("\\.py\\'". python-mode)
-    :interpreter "python")
-#+END_SRC
-
-Elpy is a ton of customizations for python. Load it up:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elpy
-    :ensure t
-    :pin melpa-stable
-    :config
-    (elpy-enable)
-    (when (require 'flycheck nil t)
-      (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-      (add-hook 'elpy-mode-hook 'flycheck-mode)))
-#+END_SRC
 ** COMMENT 10 Webpage editing
 *** HTML and friends
 Web-mode takes care of a lot of html annoyances:
@@ -2616,13 +2450,6 @@ And CSS/SCSS is handled nicely by this package:
     ("\\.scss\\'" . scss-mode))
 #+END_SRC
 
-** COMMENT 10 ctrlz z
-In my world, =C-z= is undo, not minimize emacs:
-
-#+BEGIN_SRC emacs-lisp
-  (bind-key "C-z" #'undo)
-#+END_SRC
-
 ** COMMENT 10 Encryption
 #+BEGIN_SRC emacs-lisp
   (use-package epa
@@ -2647,7 +2474,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all my passwords and lo
       :after 'helm
       :bind ("M-s p" . helm-pass)))
 #+END_SRC
-** 10 Try
+** 10 Try packages
 This package lets me try out other packages before installing them by installing them to tmp:
 
 #+BEGIN_SRC emacs-lisp
