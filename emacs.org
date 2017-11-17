@@ -1729,126 +1729,6 @@ Org can preview latex fragments with =C-c C-x C-l= but it uses dvipng by default
   (setq org-preview-latex-default-process 'imagemagick)
 #+END_SRC
 
-** COMMENT References (org-ref)
-I use org-ref to manage my references.
-#+BEGIN_SRC emacs-lisp
-  (use-package org-ref
-    :ensure t
-    :demand t ; make sure this gets loaded since I use it all the time
-    :bind*
-    (("C-c C-r" . org-ref-helm-insert-cite-link)
-     :map bibtex-mode-map
-     ("C-c C-c" . org-ref-clean-bibtex-entry)
-     :map my/map
-     ("r d" . doi-add-bibtex-entry)
-     ("r i" . isbn-to-bibtex))
-    :init
-    (setq org-ref-completion-library 'org-ref-helm-bibtex)
-    (setq org-ref-bibliography-notes "~/Sync/bibliography/notes.org"
-          org-ref-default-bibliography '("~/Sync/bibliography/references.bib")
-          org-ref-pdf-directory  "~/Sync/bibliography/bibtex-pdfs"
-          org-ref-default-ref-type "autoref"
-          org-ref-default-citation-link "autocite")
-    :config
-    (defvar my/notes-template
-      "* TODO %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n")
-    (setq org-ref-note-title-format my/notes-template)
-    ;; Set this to nil; it slows down org a LOT. Agenda generation takes under a
-    ;; second when it is nil and over 7 seconds when t:
-    (setq org-ref-show-broken-links nil)
-    ;; Cleanup nil entries from articles.
-    (add-hook 'org-ref-clean-bibtex-entry-hook #'orcb-clean-nil-opinionated t)
-
-    ;; Org-ref-bibtex is a package (contained in org-ref, so no need for
-    ;; an =:ensure t=) that helps me manage my bib file(s). I add the
-    ;; my/fix-journal-name function to always put in the full name of
-    ;; the journal. I also add it to the cleaning hook so that it's
-    ;; taken care of for me more or less automatically.
-    (defun my/add-to-journal-list (element)
-      "Add ELEMENT to `org-ref-bibtex-journal-abbreviations'"
-      (push element org-ref-bibtex-journal-abbreviations))
-
-    (mapc #'my/add-to-journal-list
-          '(("AJPS" "American Journal of Political Science" "Am Jour Polit Sci")
-            ("AJPS" "American Journal of Political Science" "Am J Political Science")
-            ("APR" "American Politics Research" "Amer. Pol. Res.")
-            ("APSR" "American Political Science Review" "Am Polit Sci Rev")
-            ("APSR" "American Political Science Review" "The American Political Science Review")
-            ("ARPS" "Annual Review of Political Science" "Ann. Rev. Poli. Sci.")
-            ("BJPS" "British Journal of Political Science" "Brit J of Pol Sci")
-            ("CP" "Comparative Politics" "Comp. Pol.")
-            ("CPS" "Comparative Political Studies" "Comp. Pol. Stud.")
-            ("EPSR" "European Political Science Review" "Eur. Pol. Sci. Rev.")
-            ("EJPR" "European Journal of Political Research" "Eur. Jour. Pol. Res.")
-            ("ES" "Electoral Studies" "Elec. Stud.")
-            ("EUP" "European Union Politics" "Eur. Unio. Pol.")
-            ("IJPOR" "International Journal of Public Opinion Research" "Intl J Pub Opin Res")
-            ("IO" "International Organization" "Intl Org")
-            ("JEPOP" "Journal of Elections, Public Opinion, and Policy" "Jour Elec PO and Pol")
-            ("JEPP" "Journal of European Public Policy" "Jour. Eur. Pub. Pol.")
-            ("JEPS" "Journal of Experimental Political Science" "J Exp Poli Sci")
-            ("JOD" "Journal of Democracy" "J of Dem")
-            ("JOP" "Journal of Politics" "The Journal of Politics")
-            ("JOP" "Journal of Politics" "J of Pol")
-            ("jop" "Journal of Politics" "J of Pol")
-            ("JoC" "Journal of Communication" "J Communication")
-            ("LSQ" "Legislative Studies Quarterly" "Leg. Stud. Quar.")
-            ("PA" "Political Analysis" "Pol. Analy.")
-            ("PB" "Political Behavior" "Pol Behavior")
-            ("PoP" "Perspectives on Politics" "Perspect. polit.")
-            ("POQ" "Public Opinion Quarterly" "Pub. Opin. Quar.")
-            ("PP" "Party Politics" "Par Pol")
-            ("PRQ" "Political Research Quarterly" "Pol. Res. Quar.")
-            ("PSJ" "Policy Studies Journal" "Pol Stu Jour")
-            ("PSQ" "Presidential Studies Quarterly" "Pres Stud Quar")
-            ("PSRM" "Political Science Research and Methods" "Pol. Sci. Res. Meth.")
-            ("QJPS" "Quarterly Journal of Political Science" "Quar. Joun. Poli. Sci.")
-            ("R\&P" "Research \\& Politics" "Res. and Pol.")
-            ("SPPQ" "State Politics \\& Policy Quarterly" "Stat. Pol. Pol. Quar.")
-            ("SS" "Statistical Science" "Stat. Sci.")
-            ("WEP" "West European Politics" "West Eur. Pol.")
-            ("WP" "World Politics" "Wor Pol")))
-
-    (defun my/fix-journal-name (&optional key start end)
-      "Replace journal name in a bibtex entry with the full name.
-    The strings are defined in
-    `org-ref-bibtex-journal-abbreviations'. The optional arguments
-    KEY, START and END allow you to use this with
-    `bibtex-map-entries'"
-      (interactive)
-      (bibtex-beginning-of-entry)
-      (when
-          (string= "article"
-                   (downcase
-                    (cdr (assoc "=type=" (bibtex-parse-entry)))))
-        (let* ((initial-names (mapcar
-                               (lambda (row)
-                                 (cons  (nth 0 row) (nth 1 row)))
-                               org-ref-bibtex-journal-abbreviations))
-               (abbrev-names (mapcar
-                              (lambda (row)
-                                (cons  (nth 2 row) (nth 1 row)))
-                              org-ref-bibtex-journal-abbreviations))
-               (journal (s-trim (bibtex-autokey-get-field "journal")))
-               (bstring (or
-                         (cdr (assoc journal initial-names))
-                         (cdr (assoc journal abbrev-names)))))
-          (when bstring
-            (bibtex-set-field "journal" bstring)
-            (bibtex-fill-entry)))))
-
-    (add-hook 'org-ref-clean-bibtex-entry-hook #'my/fix-journal-name)
-
-    (use-package doi-utils
-      :config
-      (setq doi-utils-open-pdf-after-download t))
-    (use-package org-ref-isbn
-      :config
-      (setq org-ref-isbn-exclude-fields '("form" "lang" "lccn" "oclcnum")))
-    (use-package org-ref-latex)
-    ) ; ends use-package org-ref
-#+END_SRC
-
 ** COMMENT Calendar
 Not technically part of org, but I'll stick the calendar config here since I mainly use it along with org-agenda (config'ed below)
 #+BEGIN_SRC emacs-lisp
@@ -1896,15 +1776,6 @@ And we can make it integrate with org-agenda:
   ;;   (setq cfw:org-agenda-schedule-args '(:timestamp)))
 #+END_SRC
 
-** COMMENT Tags
-Org tags look like =:this:= at the end of a heading.
-#+BEGIN_SRC emacs-lisp
-  ;; (setq org-tag-persistent-alist '(("jobs" . ?j)
-  ;;                                  (:startgroup . nil)
-  ;;                                  ("@work" . ?w)
-  ;;                                  ("@home" . ?h)
-  ;;                                  (:endgroup . nil)))
-#+END_SRC
 ** COMMENT Appt
 Technically, =appt.el= isn't a part of org mode.
 But I use it pretty much exclusively to notify me of upcoming org items I've scheduled, so may as well set it up here.
@@ -1920,64 +1791,6 @@ But I use it pretty much exclusively to notify me of upcoming org items I've sch
              :title "Appt"))
     (setq appt-disp-window-function #'my/appt-display)
     (setq appt-delete-window-function (lambda () t)))
-#+END_SRC
-
-** COMMENT org-gcal
-I can use [[https://github.com/myuhe/org-gcal.el][org-gcal]] to (bidirectionally) sync with google calendar. Lots of ideas taken from [[https://cestlaz.github.io/posts/using-emacs-26-gcal/#.WG52MOtj0wE.reddit][here]].
-#+BEGIN_SRC emacs-lisp
-  (use-package org-gcal
-    :ensure t
-    :if (executable-find "pass")
-    :functions (my/refresh-appt-with-delay my/sync-calendar-start)
-    :config
-    (setq org-gcal-client-id (password-store--run "emacs/emacs-gcal-client-id")
-          org-gcal-client-secret (password-store--run "emacs/emacs-gcal-client-secret")
-          org-gcal-file-alist '(("alex.branham@gmail.com" .  "~/org/gcal.org")))
-    (setq org-gcal-down-days 186) ; get 6 months ahead of today
-    (setq org-gcal-up-days 31) ; get 1 month before today
-    (add-to-list 'org-agenda-files my/calendar-file t)
-    ;; Refresh calendars via org-gcal and automatically create appt-reminders.
-    ;; Appt will be refreshed any time an org file is saved after 10 seconds of idle.
-    ;; gcal will be synced after 1 minute of idle every hour.
-    ;; Start with `(my/sync-calendar-start)'
-    (defvar my/refresh-appt-timer nil
-      "Timer that `my/refresh-appt-with-delay' uses to reschedule itself, or nil.")
-    (defun my/refresh-appt-with-delay ()
-      (when my/refresh-appt-timer
-        (cancel-timer my/refresh-appt-timer))
-      (setq my/refresh-appt-timer
-            (run-with-idle-timer
-             10 nil
-             (lambda ()
-               (setq appt-time-msg-list nil)
-               (org-agenda-to-appt)
-               (message nil)))))
-
-    (defvar my/sync-calendar-timer nil
-      "Timer that `my/sync-calendar-with-delay' uses to reschedule itself, or nil.")
-    (defun my/sync-calendar-with-delay ()
-      (when my/sync-calendar-timer
-        (cancel-timer my/sync-calendar-timer))
-      (setq my/sync-calendar-timer
-            (run-with-idle-timer
-             60 nil
-             'org-gcal-fetch)))
-
-    (defun my/sync-calendar-start ()
-      (add-hook 'after-save-hook
-                (lambda ()
-                  (when (eq major-mode 'org-mode)
-                    (my/refresh-appt-with-delay))))
-
-      (run-with-timer
-       0 (* 60 60) ; every hour
-       'my/sync-calendar-with-delay))
-    ;; Start syncing when Emacs starts:
-    (add-hook 'after-init-hook #'my/sync-calendar-start)
-    ;; fix bug in org-cal--notify
-    (defun new/org-gcal--notify (title mes)
-      (message "org-gcal::%s - %s" title mes))
-    (fset 'org-gcal--notify 'new/org-gcal--notify))
 #+END_SRC
 
 ** COMMENT Pomodoro
