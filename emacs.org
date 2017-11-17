@@ -2410,47 +2410,7 @@ If on my laptop, do something else than if on my work machine.
 
 
 * COMMENT To be used
-** COMMENT 10 Markdown
-Markdown mode for Markdown editing!
-
-#+BEGIN_SRC emacs-lisp
-  (use-package markdown-mode
-    :ensure t
-    :commands (markdown-mode gfm-mode)
-    :mode (("README\\.md\\'" . gfm-mode)
-           ("\\.md\\'" . markdown-mode)
-           ("\\.Rmd\\'" . markdown-mode)
-           ("\\.markdown\\'" . markdown-mode))
-    :config
-    (setq-default markdown-enable-math t))
-#+END_SRC
-
-Markdown relies on this package for =C-c '= to edit source code blocks (like org mode):
-#+BEGIN_SRC emacs-lisp
-  (use-package edit-indirect
-    :ensure t)
-#+END_SRC
-
-Of course, markdown contains a yaml header, so we need yaml-mode as well:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package yaml-mode
-    :ensure t
-    :mode (("\\.yml\\'" . yaml-mode)))
-#+END_SRC
-
-** COMMENT 10 Rainbow delimiters
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters
-  :ensure t)
-
-(use-package rainbow-mode
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-mode))
-#+END_SRC
-
-** COMMENT 10 saasasas
+** COMMENT saasasas
 
 # ** Alerts
 # Set it up so Emacs can send system notifications:
@@ -2462,7 +2422,7 @@ Of course, markdown contains a yaml header, so we need yaml-mode as well:
 #         (setq alert-default-style 'libnotify)))
 # #+END_SRC
 
-** COMMENT 10 Webpage editing
+** COMMENT Webpage editing
 *** HTML and friends
 Web-mode takes care of a lot of html annoyances:
 
@@ -2492,7 +2452,7 @@ And CSS/SCSS is handled nicely by this package:
     ("\\.scss\\'" . scss-mode))
 #+END_SRC
 
-** COMMENT 10 Encryption
+** COMMENT Encryption
 #+BEGIN_SRC emacs-lisp
   (use-package epa
     :config
