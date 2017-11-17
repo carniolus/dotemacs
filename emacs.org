@@ -2269,41 +2269,42 @@ Ediff is great, but I have to tell it to use one frame (since I start Emacs befo
 * Ledger
 [[http://ledger-cli.org/][Ledger]] is a program that I use to keep track of finances. Emacs, of course, can handle it quite nicely.
 #+BEGIN_SRC emacs-lisp
-    (use-package ledger-mode
-      :ensure t
-      :if (executable-find "ledger")
-      :mode ("\\.ledger$" . ledger-mode)
-      :demand t ; so that the capture templates get loaded
-      :bind
-      (:map ledger-mode-map
-            ("C-c r" . ledger-reconcile)
-            ("`" . my/euro)
-            :map my/map
-            ("l" . my/ledger-file))
-      :init
-      (defvar my/ledger-file
-        (expand-file-name "~/Documents/Finance/journal.ledger")
-        "Where the ledger journal is kept.")
-      (defun my/euro ()
-        (interactive)
-        (insert  ?€))
-      (defun my/ledger-file ()
-        "Find ledger journal file."
-        (interactive)
-        (find-file my/ledger-file))
-      :config
-      ;; disable company mode in ledger mode because ledger-mode comes
-      ;; with a great completion engine (magic TAB):
-      (add-hook 'ledger-mode-hook (lambda () (company-mode -1)))
-      (setq ledger-post-amount-alignment-column 65)
-      ;;(setq ledger-post-amount-alignment-at :decimal)
-      (setq ledger-reports '(("on-hand" "ledger bal ass liab -R")
-                             ("account" "ledger reg %(account)")
-                             ("budget" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab --depth=1 -n && ledger -f /home/luka/Documents/Finance/journal.ledger bal bud")
-                             ("balance" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab and not \\(reimb or pound\\) -R")
-                             ("expenses (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger reg exp -R -p this month")
-                             ("budget (this month)" "ledger budget ^exp -X $ -b \"this month\"  --flat")
-                             ("budget (this year)" "ledger budget ^exp -X $ -b \"this year\"  --flat"))))
+  (use-package ledger-mode
+    :ensure t
+    :if (executable-find "ledger")
+    :mode ("\\.ledger$" . ledger-mode)
+    :demand t ; so that the capture templates get loaded
+    :bind
+    (:map ledger-mode-map
+          ("C-c r" . ledger-reconcile)
+          ("`" . my/euro)
+          :map my/map
+          ("l" . my/ledger-file))
+    :init
+    (defvar my/ledger-file
+      (expand-file-name "~/Documents/Finance/journal.ledger")
+      "Where the ledger journal is kept.")
+    (defun my/euro ()
+      (interactive)
+      (insert  ?€))
+    (defun my/ledger-file ()
+      "Find ledger journal file."
+      (interactive)
+      (find-file my/ledger-file))
+    :config
+    ;; disable company mode in ledger mode because ledger-mode comes
+    ;; with a great completion engine (magic TAB):
+    (add-hook 'ledger-mode-hook (lambda () (company-mode -1)))
+    (setq ledger-post-amount-alignment-column 65)
+    ;;(setq ledger-post-amount-alignment-at :decimal)
+    (setq ledger-reports '(("on-hand" "ledger bal ass liab -R")
+                           ("account" "ledger reg %(account)")
+                           ("budget" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab --depth=1 -n && ledger -f /home/luka/Documents/Finance/journal.ledger bal bud")
+                           ("balance" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab and not \\(reimb or pound\\) -R")
+                           ("expenses (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger reg exp -R -p this month")
+                           ("spent (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger bal expenses -R -p this month")
+                           ("budget (this month)" "ledger budget ^exp -X $ -b \"this month\"  --flat")
+                           ("budget (this year)" "ledger budget ^exp -X $ -b \"this year\"  --flat"))))
 #+END_SRC
 
 * Utility functions
