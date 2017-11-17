@@ -627,6 +627,47 @@ You can use =C-h f=, =C-h v= and others to read docs for functions, variables, e
 #+BEGIN_SRC emacs-lisp
   (setq help-window-select t)
 #+END_SRC
+** Markdown
+Markdown mode for Markdown editing!
+
+#+BEGIN_SRC emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :commands (markdown-mode gfm-mode)
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.Rmd\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode))
+    :config
+    (setq-default markdown-enable-math t))
+#+END_SRC
+
+Markdown relies on this package for =C-c '= to edit source code blocks (like org mode):
+#+BEGIN_SRC emacs-lisp
+  (use-package edit-indirect
+    :ensure t)
+#+END_SRC
+
+Of course, markdown contains a yaml header, so we need yaml-mode as well:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :ensure t
+    :mode (("\\.yml\\'" . yaml-mode)))
+#+END_SRC
+
+** Rainbow delimiters
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-delimiters
+  :ensure t)
+
+(use-package rainbow-mode
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-mode))
+#+END_SRC
+
+
 ** popwin
 [[https://github.com/m2ym/popwin-el][popwin]] describes itself as freeing me from the hell of annoying buffers. Let's see if that's true:
 
