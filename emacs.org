@@ -2199,7 +2199,6 @@ Magit is better than the command line for git. I don't modify much. I just bind 
 #+BEGIN_SRC emacs-lisp
   (use-package magit ; for git
     :ensure t
-    :pin melpa-stable
     :bind
     ("C-x g" . magit-status)
     ("C-x M-g b" . magit-blame)
