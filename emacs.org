@@ -1416,7 +1416,7 @@ Using mu4e for reading email.
         ;; give me ISO(ish) format date-time stamps in the header list
         (setq mu4e-headers-date-format "%Y-%m-%d %H:%M")
         ;; (setq mu4e-view-show-addresses t)
-        ;; (setq mu4e-headers-include-related t)
+        (setq mu4e-headers-include-related f)
         (setq mu4e-headers-show-threads nil)
         ;; (setq mu4e-headers-skip-duplicates t)
         (setq mu4e-split-view 'vertical)
