@@ -1478,8 +1478,13 @@ Define places where to find my org files.
 #+BEGIN_SRC emacs-lisp
   ;; set org directory
   (setq org-directory "~/Documents/org/")
+
   ;; one archive file with filename as first level heading
-  (setq org-archive-location (concat org-directory "archive.org::"))
+  ;; (setq org-archive-location (concat org-directory "archive.org::"))
+
+  ;; archive into folder archives
+  (setq org-archive-location (concat org-directory "archives/%s_archive::"))
+
 
 
   (setq org-default-notes-file (concat org-directory "refile.org"))
