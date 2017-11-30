@@ -1439,12 +1439,13 @@ Using mu4e for reading email.
                             (mu4e-trash-folder . "/luka/Deleted Messages")
                             (mu4e-refile-folder . "/luka/Archive")
                             (mu4e-sent-messages-behavior . sent)
+                            (smtpmail-debug-info . t)
                         (send-mail-function           . smtpmail-send-it)
                         (message-send-mail-ggfunction . smtpmail-send-it)
                         ;;  (shell-command-to-string "pass show [name of password]")
                             (smtpmail-default-smtp-server . "mail.krajnc.io")
                             (smtpmail-smtp-server . "mail.krajnc.io")
-                            (smtpmail-stream-type . starttls)
+                            (smtpmail-stream-type . ssl)
                             (smtpmail-smtp-service . 465)))
 
                    (make-mu4e-context
