@@ -1363,294 +1363,468 @@ I can use this when I can't remember the exact name of a snippet.
 * Email
 Using mu4e for reading email.
 #+BEGIN_SRC emacs-lisp
-  (use-package mu4e
-    :if (executable-find "mu")
-    :defer 5
-    ;; :load-path "/usr/local/share/emacs/site-lisp/mu4e"
-    :load-path "/usr/share/emacs/site-lisp/mu4e"
-    :commands mu4e
-    ;; :ensure t
-    :bind
-    (("C-x m" . mu4e-compose-new)
-     ("<f9>" . my/work-inbox)
-     ("<f10>" . my/personal-inbox)
-     :map mu4e-headers-mode-map
-     ("q" . mu4e-quit-session)
-     ("c" . org-mu4e-store-and-capture)
-     :map mu4e-view-mode-map
-     ("d" . mu4e-view-mark-for-delete)
-     ("c" . org-mu4e-store-and-capture)
-     :map mu4e-main-mode-map
-     ("q" . mu4e-quit-session)
-     :map my/map
-     ("m" . my-mu4e-start))
-    :bind (:map my/map
-                ("m" . mu4e)
-                ("i w" . my/work-inbox)
-                ("i p" . my/personal-inbox))
-    :config
-    (defun my-mu4e-start ()
-      (interactive)
-      (window-configuration-to-register :mu4e-fullscreen)
-      (mu4e)
-      (delete-other-windows))
-    ;; Restore previous window configuration
-    (defun mu4e-quit-session ()
-      "Restores the previous window configuration and kills the mu4e buffer"
-      (interactive)
-      (kill-buffer)
-      (jump-to-register :mu4e-fullscreen))
-    (defun my/work-inbox ()
-      "Jump to work email"
-      (interactive)
-      (window-configuration-to-register :mu4e-fullscreen)
-      (mu4e-headers-search "maildir:/nuig/inbox")
-      (delete-other-windows))
-    (defun my/personal-inbox ()
-      "Jump to personal email"
-      (interactive)
-      (window-configuration-to-register :mu4e-fullscreen)
-      (mu4e-headers-search "maildir:/luka/Inbox OR maildir:/icloud/inbox OR maildir:/gmail/INBOX")
-      (delete-other-windows))
+     (use-package mu4e
+       :if (executable-find "mu")
+       :defer 5
+       ;; :load-path "/usr/local/share/emacs/site-lisp/mu4e"
+       :load-path "/usr/share/emacs/site-lisp/mu4e"
+       :commands mu4e
+       ;; :ensure t
+       :bind
+       (("C-x m" . mu4e-compose-new)
+        ("<f9>" . my/work-inbox)
+        ("<f10>" . my/personal-inbox)
+        :map mu4e-headers-mode-map
+        ("q" . mu4e-quit-session)
+        ("c" . org-mu4e-store-and-capture)
+        :map mu4e-view-mode-map
+        ("d" . mu4e-view-mark-for-delete)
+        ("c" . org-mu4e-store-and-capture)
+        :map mu4e-main-mode-map
+        ("q" . mu4e-quit-session)
+        :map my/map
+        ("m" . my-mu4e-start))
+       :bind (:map my/map
+                   ("m" . mu4e)
+                   ("i w" . my/work-inbox)
+                   ("i p" . my/personal-inbox))
+       :config
+       (defun my-mu4e-start ()
+         (interactive)
+         (window-configuration-to-register :mu4e-fullscreen)
+         (mu4e)
+         (delete-other-windows))
+       ;; Restore previous window configuration
+       (defun mu4e-quit-session ()
+         "Restores the previous window configuration and kills the mu4e buffer"
+         (interactive)
+         (kill-buffer)
+         (jump-to-register :mu4e-fullscreen))
+       (defun my/work-inbox ()
+         "Jump to work email"
+         (interactive)
+         (window-configuration-to-register :mu4e-fullscreen)
+         (mu4e-headers-search "maildir:/nuig/inbox")
+         (delete-other-windows))
+       (defun my/personal-inbox ()
+         "Jump to personal email"
+         (interactive)
+         (window-configuration-to-register :mu4e-fullscreen)
+         (mu4e-headers-search "maildir:/luka/Inbox OR maildir:/icloud/inbox OR maildir:/gmail/INBOX")
+         (delete-other-windows))
 
-    (use-package mu4e-contrib)
+       (use-package mu4e-contrib)
 
-    ;; (setq mu4e-maildir "/home/luka/email")
-    (setq mu4e-maildir "~/.mail")
-    ;; (setq mu4e-maildir (expand-file-name "~/email"))
-    (setq mu4e-html2text-command
-          'mu4e-shr2text)
-    (setq mu4e-context-policy 'pick-first)
-    (setq mu4e-completing-read-function 'ivy-completing-read)
-    (setq message-send-mail-function 'smtpmail-send-it)
-    (setq mu4e-view-html-plaintext-ratio-heuristic 50)
-    ;; use 'fancy' non-ascii characters in various places in mu4e
-    (setq mu4e-use-fancy-chars t)
-    (setq mu4e-contexts
-          (list (make-mu4e-context
-                 :name "luka"
-                 :enter-func (lambda () (mu4e-message "Switch to the personal context"))
-                 :match-func (lambda (msg)
-                               (when msg
-                                 (s-prefix? "/luka/" (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address . "luka@krajnc.io")
-                         (mu4e-sent-folder . "/luka/Sent")
-                         (mu4e-drafts-folder . "/luka/Drafts")
-                         (mu4e-trash-folder . "/luka/Deleted Messages")
-                         (mu4e-refile-folder . "/luka/Archive")
-                         (mu4e-sent-messages-behavior . sent)
-                         (smtpmail-default-smtp-server . "mail.krajnc.io")
-                         (smtpmail-smtp-server . "mail.krajnc.io")
-                         (smtpmail-stream-type . starttls)
-                         (smtpmail-smtp-service . 465)))
+       ;; (setq mu4e-maildir "/home/luka/email")
+       (setq mu4e-maildir "~/.mail")
+       ;; (setq mu4e-maildir (expand-file-name "~/email"))
+       (setq mu4e-html2text-command
+             'mu4e-shr2text)
+       (setq mu4e-context-policy 'pick-first)
+       (setq mu4e-completing-read-function 'ivy-completing-read)
+       (setq message-send-mail-function 'smtpmail-send-it)
+       (setq mu4e-view-html-plaintext-ratio-heuristic 50)
+       ;; use 'fancy' non-ascii characters in various places in mu4e
+       (setq mu4e-use-fancy-chars t)
+       (setq mu4e-contexts
+             (list (make-mu4e-context
+                    :name "luka"
+                    :enter-func (lambda () (mu4e-message "Switch to the personal context"))
+                    :match-func (lambda (msg)
+                                  (when msg
+                                    (s-prefix? "/luka/" (mu4e-message-field msg :maildir))))
+                    :vars '((user-mail-address . "luka@krajnc.io")
+                            (mu4e-sent-folder . "/luka/Sent")
+                            (mu4e-drafts-folder . "/luka/Drafts")
+                            (mu4e-trash-folder . "/luka/Deleted Messages")
+                            (mu4e-refile-folder . "/luka/Archive")
+                            (mu4e-sent-messages-behavior . sent)
+                        (send-mail-function           . smtpmail-send-it)
+                        (message-send-mail-ggfunction . smtpmail-send-it)
+                        ;;  (shell-command-to-string "pass show [name of password]")
+                            (smtpmail-default-smtp-server . "mail.krajnc.io")
+                            (smtpmail-smtp-server . "mail.krajnc.io")
+                            (smtpmail-stream-type . starttls)
+                            (smtpmail-smtp-service . 465)))
 
-                (make-mu4e-context
-                 :name "icloud"
-                 :enter-func (lambda () (mu4e-message "Switch to the icloud context"))
-                 :match-func (lambda (msg)
-                               (when msg
-                                 (s-prefix? "/icloud/" (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address . "luka.krajnc@icloud.com")
-                         (mu4e-sent-folder . "/icloud/Sent Messages")
-                         (mu4e-drafts-folder . "/icloud/Drafts")
-                         (mu4e-trash-folder . "/icloud/Deleted Messages")
-                         (mu4e-refile-folder . "/icloud/Archive")
-                         (mu4e-sent-messages-behavior . sent)
-                         (smtpmail-default-smtp-server . "smtp.mail.me.com")
-                         (smtpmail-smtp-server . "smtp.mail.me.com")
-                         (smtpmail-stream-type . starttls)
-                         (smtpmail-smtp-service . 587)))
+                   (make-mu4e-context
+                    :name "icloud"
+                    :enter-func (lambda () (mu4e-message "Switch to the icloud context"))
+                    :match-func (lambda (msg)
+                                  (when msg
+                                    (s-prefix? "/icloud/" (mu4e-message-field msg :maildir))))
+                    :vars '((user-mail-address . "luka.krajnc@icloud.com")
+                            (mu4e-sent-folder . "/icloud/Sent Messages")
+                            (mu4e-drafts-folder . "/icloud/Drafts")
+                            (mu4e-trash-folder . "/icloud/Deleted Messages")
+                            (mu4e-refile-folder . "/icloud/Archive")
+                            (mu4e-sent-messages-behavior . sent)
+                        (send-mail-function           . smtpmail-send-it)
+                        (message-send-mail-ggfunction . smtpmail-send-it)
+                            (smtpmail-default-smtp-server . "smtp.mail.me.com")
+                            (smtpmail-smtp-server . "smtp.mail.me.com")
+                            (smtpmail-stream-type . starttls)
+                            (smtpmail-smtp-service . 587)))
 
-                (make-mu4e-context
-                 :name "gmail"
-                 :enter-func (lambda () (mu4e-message "Switch to the gmail context"))
-                 :match-func (lambda (msg)
-                               (when msg
-                                 (s-prefix? "/gmail/" (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address . "carniolus@gmail.com")
-                         (mu4e-sent-folder . "/gmail/[Google Mail].Sent Items")
-                         (mu4e-refile-folder . "/gmail/[Google Mail].All Mail")
-                         (mu4e-drafts-folder . "/gmail/[Google Mail].Drafts")
-                         (mu4e-trash-folder . "/gmail/[Google Mail].Bin")
-                         (mu4e-sent-messages-behavior . sent)
-                         (smtpmail-default-smtp-server . "smtp.gmail.com")
-                         (smtpmail-smtp-server . "smtp.gmail.com")
-                         (smtpmail-stream-type . starttls)
-                         (smtpmail-smtp-service . 587)))
+                   (make-mu4e-context
+                    :name "gmail"
+                    :enter-func (lambda () (mu4e-message "Switch to the gmail context"))
+                    :match-func (lambda (msg)
+                                  (when msg
+                                    (s-prefix? "/gmail/" (mu4e-message-field msg :maildir))))
+                    :vars '((user-mail-address . "carniolus@gmail.com")
+                            (mu4e-sent-folder . "/gmail/[Google Mail].Sent Items")
+                            (mu4e-refile-folder . "/gmail/[Google Mail].All Mail")
+                            (mu4e-drafts-folder . "/gmail/[Google Mail].Drafts")
+                            (mu4e-trash-folder . "/gmail/[Google Mail].Bin")
+                            (mu4e-sent-messages-behavior . sent)
+                            (smtpmail-smtp-user . "carniolus@gmail.com")
+                            (smtpmail-debug-info . t)
+                            (send-mail-function           . smtpmail-send-it)
+                            (message-send-mail-ggfunction . smtpmail-send-it)
+                            (smtpmail-default-smtp-server . "smtp.gmail.com")
+                            (smtpmail-smtp-server . "smtp.gmail.com")
+                            (smtpmail-stream-type . starttls)
+                            (smtpmail-smtp-service . 587)))
 
-                (make-mu4e-context
-                 :name "nuig"
-                 :enter-func (lambda () (mu4e-message "Switch to the nuig context"))
-                 :match-func (lambda (msg)
-                               (when msg
-                                 (s-prefix? "/nuig/" (mu4e-message-field msg :maildir))))
-                 :vars '((user-mail-address . "luka.krajnc@nuigalway.ie")
-                         (mu4e-sent-folder . "/nuig/Sent Items")
-                         (mu4e-refile-folder . "/nuig/Archive")
-                         (mu4e-drafts-folder . "/nuig/Drafts")
-                         (mu4e-trash-folder . "/nuig/Deleted Items")
-                         (mu4e-sent-messages-behavior . sent)
-                         (smtpmail-default-smtp-server . "outlook.com")
-                         (smtpmail-smtp-server . "outlook.com")
-                         (smtpmail-stream-type . starttls)
-                         (smtpmail-smtp-service . 25)))))
+                   (make-mu4e-context
+                    :name "nuig"
+                    :enter-func (lambda () (mu4e-message "Switch to the nuig context"))
+                    :match-func (lambda (msg)
+                                  (when msg
+                                    (s-prefix? "/nuig/" (mu4e-message-field msg :maildir))))
+                    :vars '((user-mail-address . "luka.krajnc@nuigalway.ie")
+                            (mu4e-sent-folder . "/nuig/Sent Items")
+                            (mu4e-refile-folder . "/nuig/Archive")
+                            (mu4e-drafts-folder . "/nuig/Drafts")
+                            (mu4e-trash-folder . "/nuig/Deleted Items")
+                            (mu4e-sent-messages-behavior . sent)
+                        (send-mail-function           . smtpmail-send-it)
+                        (message-send-mail-ggfunction . smtpmail-send-it)
+                            (smtpmail-default-smtp-server . "outlook.com")
+                            (smtpmail-smtp-server . "outlook.com")
+                            (smtpmail-stream-type . starttls)
+                            (smtpmail-smtp-service . 25)))))
 
-    ;; how often we refresh
-    (setq mu4e-get-mail-command "mbsync -a")
-    (setq mu4e-update-interval 300)
+       ;; how often we refresh
+       (setq mu4e-get-mail-command "mbsync -a")
+       (setq mu4e-update-interval 300)
 
-    ;; I want my format=flowed thank you very much
-    ;; mu4e sets up visual-line-mode and also fill (M-q) to do the right thing
-    ;; each paragraph is a single long line; at sending, emacs will add the
-    ;; special line continuation characters.
-    (setq mu4e-compose-format-flowed t)
+       ;; I want my format=flowed thank you very much
+       ;; mu4e sets up visual-line-mode and also fill (M-q) to do the right thing
+       ;; each paragraph is a single long line; at sending, emacs will add the
+       ;; special line continuation characters.
+       (setq mu4e-compose-format-flowed t)
 
-    ;; every new email composition gets its own frame! (window)
-    (setq mu4e-compose-in-new-frame t)
+       ;; every new email composition gets its own frame! (window)
+       (setq mu4e-compose-in-new-frame t)
 
-    ;; give me ISO(ish) format date-time stamps in the header list
-    (setq mu4e-headers-date-format "%Y-%m-%d %H:%M")
+       ;; give me ISO(ish) format date-time stamps in the header list
+       (setq mu4e-headers-date-format "%Y-%m-%d %H:%M")
 
-    (setq mu4e-headers-fields
-          '((:human-date    .  11)
-            (:flags         .   6)
-            (:mailing-list   .  10)
-            (:from-or-to    .  22)
-            (:subject       .  nil)))
-    ;; (setq mu4e-view-show-addresses t)
-    ;; (setq mu4e-headers-include-related f)
-    (setq mu4e-headers-show-threads nil)
+       (setq mu4e-headers-fields
+             '((:human-date    .  11)
+               (:flags         .   6)
+               (:mailing-list   .  10)
+               (:from-or-to    .  22)
+               (:subject       .  nil)))
+       ;; (setq mu4e-view-show-addresses t)
+       ;; (setq mu4e-headers-include-related f)
+       (setq mu4e-headers-show-threads nil)
 
-    ;; (setq mu4e-headers-skip-duplicates t)
-    (setq mu4e-split-view 'vertical)
+       ;; (setq mu4e-headers-skip-duplicates t)
+       (setq mu4e-split-view 'vertical)
 
-    ;; compose with the current context if no context matches;
-    ;; (setq mu4e-compose-context-policy first)
-    ;; (setq mu4e-compose-context-policy nil)
+       ;; compose with the current context if no context matches;
+       ;; (setq mu4e-compose-context-policy first)
+       ;; (setq mu4e-compose-context-policy nil)
 
-    (setq mu4e-save-multiple-attachments-without-asking t) ; save all attachments in same dir
+       (setq mu4e-save-multiple-attachments-without-asking t) ; save all attachments in same dir
 
-    ;; don't ask me to quit, just quit
-    (setq mu4e-confirm-quit nil)
-    (setq mail-user-agent 'mu4e-user-agent)
+       ;; don't ask me to quit, just quit
+       (setq mu4e-confirm-quit nil)
+       (setq mail-user-agent 'mu4e-user-agent)
 
-    (setq mu4e-hide-index-messages t)
-    (setq mu4e-view-show-images t)
-    ;; use imagemagick, if available
-    (when (fboundp 'imagemagick-register-types)
-      (imagemagick-register-types))
+       (setq mu4e-hide-index-messages t)
+       (setq mu4e-view-show-images t)
+       ;; use imagemagick, if available
+       (when (fboundp 'imagemagick-register-types)
+         (imagemagick-register-types))
 
-    (setq message-kill-buffer-on-exit t)
-    (setq mu4e-use-fancy-chars t)
-    (setq mu4e-headers-skip-duplicates t)
-    (setq mu4e-attachment-dir "~/Downloads")
-    (setq mu4e-completing-read-function 'completing-read)
+       (setq message-kill-buffer-on-exit t)
+       (setq mu4e-use-fancy-chars t)
+       (setq mu4e-headers-skip-duplicates t)
+       (setq mu4e-attachment-dir "~/Downloads")
+       (setq mu4e-completing-read-function 'completing-read)
 
-    ;; next two are from:
-    ;; http://pragmaticemacs.com/emacs/customise-the-reply-quote-string-in-mu4e/ :
-    ;; customize the reply-quote-string
-    (setq message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n")
-    ;; choose to use the formatted string
-    (setq message-citation-line-function 'message-insert-formatted-citation-line)
+       ;; next two are from:
+       ;; http://pragmaticemacs.com/emacs/customise-the-reply-quote-string-in-mu4e/ :
+       ;; customize the reply-quote-string
+       (setq message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n")
+       ;; choose to use the formatted string
+       (setq message-citation-line-function 'message-insert-formatted-citation-line)
 
-    ;; probably unecessary, see format=flowed
-    ;; ;; disable visual-line-mode in mu4e-headers (one line should be one email)
-    ;; (add-hook 'mu4e-headers-mode-hook (lambda () (visual-line-mode -1)))
-    ;; ;; Wrap lines at `fill-column' when viewing emails:
-    ;; (add-hook 'mu4e-compose-mode-hook #'visual-fill-column-mode)
-    ;; (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
-    ;; ;; turn off autofill mode in mu4e compose
-    ;; (defun autofill-off-visual-on ()
-    ;;   "Turn off auto-fill-mode and turn on visual-mode"
-    ;;   (auto-fill-mode -1)
-    ;;   (visual-line-mode))
-    ;; (add-hook 'mu4e-compose-mode-hook #'autofill-off-visual-on)
+       ;; probably unecessary, see format=flowed
+       ;; ;; disable visual-line-mode in mu4e-headers (one line should be one email)
+       ;; (add-hook 'mu4e-headers-mode-hook (lambda () (visual-line-mode -1)))
+       ;; ;; Wrap lines at `fill-column' when viewing emails:
+       ;; (add-hook 'mu4e-compose-mode-hook #'visual-fill-column-mode)
+       ;; (add-hook 'mu4e-view-mode-hook #'visual-fill-column-mode)
+       ;; ;; turn off autofill mode in mu4e compose
+       ;; (defun autofill-off-visual-on ()
+       ;;   "Turn off auto-fill-mode and turn on visual-mode"
+       ;;   (auto-fill-mode -1)
+       ;;   (visual-line-mode))
+       ;; (add-hook 'mu4e-compose-mode-hook #'autofill-off-visual-on)
 
-    ;; Here we define a function that cleans up contacts. Stolen from:
-    ;; https://martinralbrecht.wordpress.com/2016/05/30/handling-email-with-emacs/
-    (defun malb/canonicalise-contact-name (name)
-      (let ((case-fold-search nil))
-        (setq name (or name ""))
-        (if (string-match-p "^[^ ]+@[^ ]+\.[^ ]" name)
-            ""
-          (progn
-            ;; drop email address
-            (setq name (replace-regexp-in-string "^\\(.*\\) [^ ]+@[^ ]+\.[^ ]" "\\1" name))
-            ;; strip quotes
-            (setq name (replace-regexp-in-string "^\"\\(.*\\)\"" "\\1" name))
-            ;; deal with YELL’d last names
-            (setq name (replace-regexp-in-string "^\\(\\<[[:upper:]]+\\>\\) \\(.*\\)" "\\2 \\1" name))
-            ;; Foo, Bar becomes Bar Foo
-            (setq name (replace-regexp-in-string "^\\(.*\\), \\([^ ]+\\).*" "\\2 \\1" name))
-            ;; look up names and replace from static table, TODO look this up by email
-            ;; (setq name (or (cdr (assoc name malb/mu4e-name-replacements)) name))
-            ))))
+       ;; Here we define a function that cleans up contacts. Stolen from:
+       ;; https://martinralbrecht.wordpress.com/2016/05/30/handling-email-with-emacs/
+       (defun malb/canonicalise-contact-name (name)
+         (let ((case-fold-search nil))
+           (setq name (or name ""))
+           (if (string-match-p "^[^ ]+@[^ ]+\.[^ ]" name)
+               ""
+             (progn
+               ;; drop email address
+               (setq name (replace-regexp-in-string "^\\(.*\\) [^ ]+@[^ ]+\.[^ ]" "\\1" name))
+               ;; strip quotes
+               (setq name (replace-regexp-in-string "^\"\\(.*\\)\"" "\\1" name))
+               ;; deal with YELL’d last names
+               (setq name (replace-regexp-in-string "^\\(\\<[[:upper:]]+\\>\\) \\(.*\\)" "\\2 \\1" name))
+               ;; Foo, Bar becomes Bar Foo
+               (setq name (replace-regexp-in-string "^\\(.*\\), \\([^ ]+\\).*" "\\2 \\1" name))
+               ;; look up names and replace from static table, TODO look this up by email
+               ;; (setq name (or (cdr (assoc name malb/mu4e-name-replacements)) name))
+               ))))
 
-    (defun malb/mu4e-contact-rewrite-function (contact)
-      (let* ((name (or (plist-get contact :name) ""))
-             (mail (plist-get contact :mail))
-             (case-fold-search nil))
-        (plist-put contact :name (malb/canonicalise-contact-name name))
-        contact))
+       (defun malb/mu4e-contact-rewrite-function (contact)
+         (let* ((name (or (plist-get contact :name) ""))
+                (mail (plist-get contact :mail))
+                (case-fold-search nil))
+           (plist-put contact :name (malb/canonicalise-contact-name name))
+           contact))
 
-    (setq mu4e-contact-rewrite-function #'malb/mu4e-contact-rewrite-function)
+       (setq mu4e-contact-rewrite-function #'malb/mu4e-contact-rewrite-function)
 
-    ;; starts mu4e silently when emacs starts
-    ;; (mu4e t)
+       ;; starts mu4e silently when emacs starts
+       ;; (mu4e t)
 
-    ;; shortcuts
-    (setq mu4e-maildir-shortcuts
-          '(("/nuig/Inbox" . ?n)
-            ("/nuig/Archive" . ?a)
-            ))
+       ;; shortcuts
+       (setq mu4e-maildir-shortcuts
+             '(("/nuig/Inbox" . ?n)
+               ("/nuig/Archive" . ?a)
+               ))
 
-    (add-to-list 'mu4e-bookmarks
-                 (make-mu4e-bookmark
-                  :name "All inboxes"
-                  :query "maildir:/luka/Inbox OR maildir:/icloud/inbox OR maildir:/gmail/INBOX OR maildir:/nuig/inbox"
-                  :key ?i))
-    (add-to-list 'mu4e-bookmarks
-                 (make-mu4e-bookmark
-                  :name "All archives"
-                  :query "maildir:/luka/Archive OR maildir:/icloud/Archive OR maildir:/gmail/'[Google Mail].All Mail' OR maildir:/nuig/Archive"
-                  :key ?a))
+       (add-to-list 'mu4e-bookmarks
+                    (make-mu4e-bookmark
+                     :name "All inboxes"
+                     :query "maildir:/luka/Inbox OR maildir:/icloud/inbox OR maildir:/gmail/INBOX OR maildir:/nuig/inbox"
+                     :key ?i))
+       (add-to-list 'mu4e-bookmarks
+                    (make-mu4e-bookmark
+                     :name "All archives"
+                     :query "maildir:/luka/Archive OR maildir:/icloud/Archive OR maildir:/gmail/'[Google Mail].All Mail' OR maildir:/nuig/Archive"
+                     :key ?a))
 
 
 
-    ;; change filenames to comply with mbsync, otherwise you get duplicate errors
-    (setq mu4e-change-filenames-when-moving t)
+       ;; change filenames to comply with mbsync, otherwise you get duplicate errors
+       (setq mu4e-change-filenames-when-moving t)
 
-    (setq mu4e-user-mail-address-list '("luka@krajnc.io" "luka.krajnc@icloud.com" "carniolus@gmail.com" "luka.krajnc@nuigalway.ie"))
-    ;; a bit about me
-    (setq
-     user-full-name  "Luka Krajnc"
-     mu4e-compose-signature ""
-     mu4e-compose-signature-auto-include nil)
+       (setq mu4e-user-mail-address-list '("luka@krajnc.io" "luka.krajnc@icloud.com" "carniolus@gmail.com" "luka.krajnc@nuigalway.ie"))
+       ;; a bit about me
+       (setq
+        user-full-name  "Luka Krajnc"
+        mu4e-compose-signature ""
+        mu4e-compose-signature-auto-include nil)
 
-    (add-to-list 'mu4e-view-actions
-                 '("View in browser" . mu4e-action-view-in-browser) t)
+       (add-to-list 'mu4e-view-actions
+                    '("View in browser" . mu4e-action-view-in-browser) t)
 
-    ;; attempt to show images when viewing messages
-    (setq mu4e-view-show-images t)
+       ;; attempt to show images when viewing messages
+       (setq mu4e-view-show-images t)
 
-    ;; don't keep message buffers around
-    (setq message-kill-buffer-on-exit t)
+       ;; don't keep message buffers around
+       (setq message-kill-buffer-on-exit t)
 
-    (defun my/mu4e-inbox ()
-      "jump to mu4e inbox"
-      (interactive)
-      (mu4e~headers-jump-to-maildir "/nuig/Inbox"))
+       (defun my/mu4e-inbox ()
+         "jump to mu4e inbox"
+         (interactive)
+         (mu4e~headers-jump-to-maildir "/nuig/Inbox"))
 
-    ;; starts mu4e silently when emacs starts
-    ;; (mu4e t)
-    ) ;finish mu4e config
-            ;; ;; use msmtp
-            ;; (setq message-send-mail-function 'message-send-mail-with-sendmail)
-            ;; (setq sendmail-program "/usr/local/bin/msmtp")
-            ;; ;; tell msmtp to choose the SMTP server according to the from field in the outgoing email
-            ;; (setq message-sendmail-extra-arguments '("--read-envelope-from"))
-            ;; (setq message-sendmail-f-is-evil 't)
+       ;; starts mu4e silently when emacs starts
+       ;; (mu4e t)
+       ) ;finish mu4e config
+               ;; ;; use msmtp
+               ;; (setq message-send-mail-function 'message-send-mail-with-sendmail)
+               ;; (setq sendmail-program "/usr/local/bin/msmtp")
+               ;; ;; tell msmtp to choose the SMTP server according to the from field in the outgoing email
+               ;; (setq message-sendmail-extra-arguments '("--read-envelope-from"))
+               ;; (setq message-sendmail-f-is-evil 't)
 #+END_SRC
+** Helper for yasnippet
+
+This function helps with an expandable snippet. [[http://pragmaticemacs.com/emacs/email-templates-in-mu4e-with-yasnippet/][link]]
+
+
+#+BEGIN_SRC emacs-lisp
+  ;; function to return first name of email recipients
+  ;; used by yasnippet
+  ;; inspired by
+  ;;http://blog.binchen.org/posts/how-to-use-yasnippets-to-produce-email-templates-in-emacs.html
+  (defun bjm/mu4e-get-names-for-yasnippet ()
+    "Return comma separated string of names for an email"
+    (interactive)
+    (let ((email-name "") str email-string email-list email-name2 tmpname)
+      (save-excursion
+        (goto-char (point-min))
+        ;; first line in email could be some hidden line containing NO to field
+        (setq str (buffer-substring-no-properties (point-min) (point-max))))
+      ;; take name from TO field - match series of names
+      (when (string-match "^To: \"?\\(.+\\)" str)
+        (setq email-string (match-string 1 str)))
+      ;;split to list by comma
+      (setq email-list (split-string email-string " *, *"))
+      ;;loop over emails
+      (dolist (tmpstr email-list)
+        ;;get first word of email string
+        (setq tmpname (car (split-string tmpstr " ")))
+        ;;remove whitespace or ""
+        (setq tmpname (replace-regexp-in-string "[ \"]" "" tmpname))
+        ;;join to string
+        (setq email-name
+              (concat email-name ", " tmpname)))
+      ;;remove initial comma
+      (setq email-name (replace-regexp-in-string "^, " "" email-name))
+
+      ;;see if we want to use the name in the FROM field
+      ;;get name in FROM field if available, but only if there is only
+      ;;one name in TO field
+      (if (< (length email-list) 2)
+          (when (string-match "^On.+, \\([^ ,\n]+\\).+wrote:$" str)
+            (progn
+              (setq email-name2 (match-string 1 str))
+              ;;prefer name in FROM field if TO field has "@"
+              (when (string-match "@" email-name)
+                (setq email-name email-name2))
+              )))
+      email-name))
+#+END_SRC
+
+** Sending mail
+#+BEGIN_SRC emacs-lisp
+  (use-package smtpmail
+    :if (executable-find "mu")
+    :config
+    ;; warn if no attachments
+    (defun mbork/message-attachment-present-p ()
+      "Return t if an attachment is found in the current message."
+      (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (when (search-forward "<#part" nil t) t))))
+
+    (defvar mbork/message-attachment-intent-re
+      (regexp-opt '("I attach"
+                    "I have attached"
+                    "I've attached"
+                    "I have included"
+                    "I've included"
+                    "see the attached"
+                    "see the attachment"
+                    "attached file"))
+      "A regex which - if found in the message, and if there is no
+  attachment - should launch the no-attachment warning.")
+
+    (defvar mbork/message-attachment-reminder
+      "Are you sure you want to send this message without any attachment? "
+      "The default question asked when trying to send a message
+  containing `mbork/message-attachment-intent-re' without an
+  actual attachment.")
+
+    (defun mbork/message-warn-if-no-attachments ()
+      "Ask the user if s?he wants to send the message even though
+  there are no attachments."
+      (when (and (save-excursion
+                   (save-restriction
+                     (widen)
+                     (goto-char (point-min))
+                     (re-search-forward mbork/message-attachment-intent-re nil t)))
+                 (not (mbork/message-attachment-present-p)))
+        (unless (y-or-n-p mbork/message-attachment-reminder)
+          (keyboard-quit))))
+
+    (add-hook 'message-send-hook #'mbork/message-warn-if-no-attachments))
+#+END_SRC
+
+** COMMENT Mail alerts
+#+BEGIN_SRC emacs-lisp
+  (use-package mu4e-alert
+    :if (executable-find "mu")
+    :defer 10
+    :after mu4e
+    :config
+    (setq mu4e-alert-email-notification-types '(subjects))
+    (setq mu4e-alert-set-window-urgency nil)
+    (setq mu4e-alert-interesting-mail-query
+          (concat
+           "flag:unread AND maildir:\"/utexas/INBOX\""
+           " OR flag:unread AND maildir:\"/gmail/INBOX\""
+           " OR flag:unread AND maildir:\"/gu/INBOX\""))
+    (mu4e-alert-enable-mode-line-display)
+    (mu4e-alert-enable-notifications))
+#+END_SRC
+
+** Helm and emails (helm-mu)
+I can use helm to help me search emails and contacts:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-mu
+    :defer t
+    :bind
+    (("M-s m" . helm-mu)
+     ("M-s c" . helm-mu-contacts)
+     :map mu4e-main-mode-map
+     ("s" . helm-mu)
+     :map mu4e-headers-mode-map
+     ("s" . helm-mu)
+     :map mu4e-view-mode-map
+     ("s" . helm-mu)))
+#+END_SRC
+
+* Password management
+** Passwords
+I use [[https://www.passwordstore.org/][pass]] to manage all my passwords and login info.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package password-store
+    ;;:if (executable-find "pass")
+    :config
+    ;; Set longer default password length
+    (setq password-store-password-length 20))
+#+END_SRC
+** Integrate auth-source with pass
+Integrate Emacs's builtin auth-source with pass:
+#+BEGIN_SRC emacs-lisp
+    (use-package auth-password-store
+      ;;:if (executable-find "pass")
+      :ensure t
+      :demand t
+      :config
+      (auth-pass-enable)
+  (setq auth-source-debug t)
+  (setq auth-source-do-cache nil))
+#+END_SRC
+** Helm for pass
+Set up helm to easily find passwords:
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-pass
+    :if (executable-find "pass")
+    :after 'helm
+    :bind ("M-s p" . helm-pass))
+#+END_SRC
+
 * Org
 ** General
  Hide leading stars in org.
