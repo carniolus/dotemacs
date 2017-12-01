@@ -2651,14 +2651,13 @@ Ediff is great, but I have to tell it to use one frame (since I start Emacs befo
     (add-hook 'ledger-mode-hook (lambda () (company-mode -1)))
     (setq ledger-post-amount-alignment-column 65)
     ;;(setq ledger-post-amount-alignment-at :decimal)
-    (setq ledger-reports '(("on-hand" "ledger bal ass liab -R")
+    (setq ledger-reports '(("on-hand" "ledger -f /home/luka/Documents/Finance/journal.ledger balance assets and not reimb and not pound and not savings and not varcevalni -R")
+                           ("balance" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab -R")
                            ("account" "ledger reg %(account)")
                            ("budget" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab --depth=1 -n && ledger -f /home/luka/Documents/Finance/journal.ledger bal bud")
-                           ("balance" "ledger -f /home/luka/Documents/Finance/journal.ledger bal ass liab and not \\(reimb or pound\\) -R")
-                           ("expenses (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger reg exp -R -p this month")
+                           ("list expenses (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger reg exp -R -p this month")
                            ("spent (this month)" "ledger -f /home/luka/Documents/Finance/journal.ledger bal expenses -R -p this month")
-                           ("budget (this month)" "ledger budget ^exp -X $ -b \"this month\"  --flat")
-                           ("budget (this year)" "ledger budget ^exp -X $ -b \"this year\"  --flat"))))
+                           )))
 #+END_SRC
 
 * Utility functions
